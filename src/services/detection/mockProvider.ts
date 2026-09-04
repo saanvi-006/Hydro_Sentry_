@@ -145,7 +145,7 @@ export const mockProvider: DetectionProvider = {
     if (file && /error|fail/i.test(file.name)) {
       throw new Error("Sonar frame rejected: unreadable header (code: DECODE_FAILED)");
     }
-    const base = scans[call++ % scans.length];
+    const base = scans[call++ % scans.length]!;
     return filterByThreshold(base, threshold);
   },
   async checkHealth(): Promise<HealthStatus> {
