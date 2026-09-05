@@ -1,203 +1,65 @@
-# HydroSentry
+# HydroSentry 🌊
 
-**Automated Underwater Marine Debris & Acoustic Anomaly Detection System**  
-*Smart India Hackathon · Problem Statement ID: 26057*  
-*Organization: Ministry of Earth Sciences (MoES) | Department: National Institute of Ocean Technology (NIOT)*  
-*Theme: Disaster Management | Category: Software*
+AI-assisted triage for side-scan sonar surveys — separating man-made debris and hazards from natural seafloor clutter.
 
----
+HydroSentry is a prototype built for **Smart India Hackathon (SIH) Problem Statement #26057**, issued by the Ministry of Earth Sciences (MoES) through the National Institute of Ocean Technology (NIOT). It gives an analyst a single workspace to upload a side-scan sonar frame, review AI-flagged contacts against the raw acoustic image, and export a structured findings report — instead of scrolling through kilometers of sonar log by eye.
 
-## 📌 Problem Context & Scope
+> This is the **frontend** repository. It renders detections through a swappable provider layer and currently ships with a mock data provider — see [Backend](#-backend) below for the companion detection-pipeline repo.
 
-Anthropogenic (man-made) marine debris poses an escalating ecological and navigational hazard across coastal and deep-sea environments. Among the most destructive pollutants are **ghost nets** (abandoned, lost, or discarded fishing gear) that continuously trap marine life and damage reefs, alongside industrial hazards such as submerged pipes, sunken wreckage, and discarded containers.
+## 📋 Problem Statement
 
-Marine scientists and ocean technologists rely on **Side-Scan Sonar (SSS)** towed behind survey vessels or mounted on Autonomous Underwater Vehicles (AUVs) to acoustically image the seabed. However, manual inspection of sonar waterfall logs across hundreds of kilometers of survey tracks is:
-- **Labor-Intensive & Slow**: Surveyors must manually review gigabytes of continuous acoustic backscatter.
-- **Prone to False Positives**: Natural seabed topology (rock clusters, sand ripples, geological ridges) casts acoustic shadows that closely resemble man-made objects.
-- **Acoustically Degraded**: Sonar imagery inherently suffers from speckle noise, resolution changes across slant range, and sensor motion artifacts (heave, pitch, roll).
+| Field | Detail |
+|---|---|
+| **ID** | 26057 |
+| **Title** | AI-Powered Automated Underwater Marine Debris and Anomaly Detection System using Side-Scan Sonar Imagery |
+| **Organization** | Ministry of Earth Sciences (MoES) |
+| **Department** | National Institute of Ocean Technology (NIOT) |
+| **Category** | Software |
+| **Theme** | Disaster Management |
 
-**HydroSentry** addresses Problem Statement 26057 by providing an automated computer vision pipeline and review dashboard designed to ingest side-scan sonar imagery, detect anthropogenic debris, filter out natural false positives, geotag anomalies, and generate structured survey reports.
+Marine debris — ghost nets, wreckage, and other man-made hazards — accumulates across seafloor terrain that's monitored using side-scan sonar towed behind survey vessels or mounted on AUVs. Manually reviewing that volume of acoustic imagery is slow and error-prone, and debris is easy to miss against natural clutter like rock formations and sand ripples. The problem statement calls for an end-to-end pipeline that detects man-made anomalies in sonar imagery, scores them with a confidence value to suppress false positives from acoustic shadows and noise, and surfaces the result through a dashboard that an analyst can actually use — with geotagged, exportable reports.
 
----
+## 🖥️ What HydroSentry does
 
-## 🎯 Solution Architecture & Core Modules
+HydroSentry is the **user-facing dashboard** called for in the problem statement's expected solution — the piece an analyst opens to upload a survey, see detections, and download a report.
 
-HydroSentry is structured around the four deliverables specified in PS ID 26057:
+- **Sonar contact review** — upload a side-scan sonar frame and see AI-flagged contacts drawn directly on the image as bounding boxes
+- **Known vs. unknown anomaly distinction** — recognized objects (shipwrecks, mines, aircraft debris) are visually distinguished from unclassified anomalies that need analyst judgment
+- **Confidence-scored triage** — every contact carries a confidence score and a priority tier, so the highest-value findings surface first instead of getting buried in noise
+- **Geographic context** — detections are plotted against their survey coordinates alongside the sonar canvas
+- **Survey dashboard** — a rollup view across all surveys run so far: totals, classification breakdown, and top-priority findings
+- **Exportable reports** — per-survey findings as downloadable CSV or JSON, matching the structured-report requirement in the problem statement
 
-```
-                    [ Raw Side-Scan Sonar Logs (SSS) ]
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 1. Sonar Pre-Processing & Acoustic Noise Filtering                      │
-│    • Speckle noise attenuation & contrast normalization                 │
-│    • Distinguishes natural geological formations from rigid debris       │
-└──────────────────────────────────┬──────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 2. Computer Vision Anomaly Detection Engine                             │
-│    • Identifies anthropogenic debris: Ghost Nets, Pipes, Wrecks         │
-│    • Detects acoustic highlight + shadow pairings                       │
-│    • Classifies Known vs. Unclassified seabed anomalies                │
-│    • Adjustable confidence scoring (0% – 100%)                          │
-└──────────────────────────────────┬──────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 3. Geotagging & Survey Mapping Engine                                   │
-│    • Correlates sonar ping coordinates with localized anomaly bboxes    │
-│    • Plots debris coordinates on interactive basemaps (Google / Leaflet)│
-└──────────────────────────────────┬──────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ 4. Analyst Dashboard & Structured Reporting Engine                      │
-│    • Side-by-side raw vs. annotated acoustic visualization              │
-│    • Summary metrics: verified targets vs. filtered false positives     │
-│    • Structured export: JSON & CSV format for NIOT survey logs          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+## 🛠️ Tech Stack
 
----
+- **Frontend**: React 19, TypeScript, [TanStack Start](https://tanstack.com/start) / TanStack Router
+- **Styling**: Tailwind CSS v4, shadcn/ui (Radix primitives), lucide-react
+- **Data & forms**: TanStack Query, react-hook-form, zod
+- **Build tooling**: Vite
 
-## 🔍 Key Features
+## 🔌 Detection layer
 
-### 1. Acoustic Anomaly Detection & Shadow Analysis
-- **Target Classes**: Detects and bounds high-risk anthropogenic debris categories:
-  - **Ghost Fishing Gear & Entangled Nets** (High priority hazards)
-  - **Submerged Pipes & Cylinders** (Linear acoustic profiles)
-  - **Shipwreck & Metal Debris** (High-intensity acoustic backscatter)
-  - **Unclassified Seabed Anomalies** (Anomalous acoustic patterns flagged for manual inspection)
-- **Highlight-Shadow Association**: Recognizes that side-scan sonar targets consist of an acoustic highlight (reflected sound) followed by an acoustic shadow zone (blocked beam).
-- **Interactive Threshold Tuning**: Allows surveyors to dial confidence thresholds dynamically, observing how detections and false positives respond to different seafloor clutter levels.
+The dashboard talks to detections through a single provider interface (`src/services/detection/`), independent of whichever model or pipeline sits behind it. It currently ships with a mock provider so the UI can be demoed and evaluated standalone; swapping in the real detection backend is a one-line change (`src/services/detection/index.ts`) once it's connected, with no changes needed elsewhere in the app.
 
-### 2. Geotagging & Track Cartography
-- **Survey Track Plotting**: Synchronizes detected bounding boxes with recorded ping latitude and longitude coordinates.
-- **Multi-Layer Cartography**: Powered by Leaflet with three focused basemap modes for coastal and offshore context:
-  - **Google Hybrid**: High-resolution imagery with geographic labels and navigation references.
-  - **Google Maps**: Clean topographic view for survey boundaries and coastal markers.
-  - **Google Satellite**: Unobstructed aerial photography for marine survey environments.
+## 🔗 Backend
 
-### 3. Structured Reporting & Geotagged Export
-- **Machine-Readable Exports**: Generates structured **JSON** and **CSV** reports containing:
-  - Anomaly Unique ID & Timestamp
-  - Geographic Coordinates (Latitude, Longitude)
-  - Normalized Bounding Coordinates (`x_min`, `y_min`, `x_max`, `y_max`)
-  - Detected Class & Confidence Score (%)
-  - Acoustic Anomaly vs. Physics Correlation Metric
-- Compatible with GIS workflows, NIOT survey databases, and post-mission cleanup logs.
+The detection backend — the AI/CV pipeline that actually processes sonar imagery — lives in a companion repository and is being integrated:
 
-### 4. Focused Analyst UI
-- **Ergonomic Dual Themes**:
-  - **Command Center (Dark)**: Matte obsidian interface optimized for low-glare operations in shipboard survey workstations.
-  - **Tactical Daylight (Light)**: High-contrast palette with subtle gold and navy accents for bright outdoor or laboratory environments.
-- **Non-Destructive Inspection**: Fast toggle between raw sonar backscatter and AI-annotated overlays without altering the underlying survey file.
-
----
-
-## 💻 Tech Stack & Implementation Details
-
-| Component | Implementation | Purpose |
-|---|---|---|
-| **Frontend Framework** | [TanStack Start](https://tanstack.com/start) & [React 19](https://react.dev) | Modern full-stack SSR application with type-safe routing |
-| **Build & Bundle** | [Vite 8](https://vitejs.dev) & [Nitro](https://nitro.unjs.io) | Sub-second HMR and lightweight server packaging |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com) + Radix UI primitives | Information-dense, accessible maritime UI components |
-| **Mapping Engine** | [Leaflet](https://leafletjs.com) + Google Tile Services | Lightweight, client-rendered geospatial survey tracks |
-| **Language** | [TypeScript](https://www.typescriptlang.org) | End-to-end type safety for detection schema and survey metadata |
-
----
-
-## 📂 Project Structure
-
-```
-Hydro_Sentry_/
-├── public/                     # Static assets & brand favicons
-├── src/
-│   ├── components/
-│   │   ├── dashboard/          # SonarCanvas, TrackMap, BoundingBoxOverlay, MetricsCard
-│   │   ├── ui/                 # Radix UI primitives, badges, and controls
-│   │   └── SiteHeader.tsx      # Navigation and theme toggle
-│   ├── routes/
-│   │   ├── __root.tsx          # Root document & global theme provider
-│   │   ├── index.tsx           # Platform landing & problem statement context
-│   │   ├── dashboard.tsx       # Primary acoustic inspection & annotation workspace
-│   │   ├── overview.tsx        # Survey log overview & geotagged pin summary
-│   │   └── metrics.tsx         # Model performance evaluation & filtering metrics
-│   ├── services/
-│   │   └── detection/          # Modular detection pipeline abstraction
-│   │       ├── types.ts        # Locked Detection and DetectionResult data structures
-│   │       ├── provider.ts     # Interface definition (detect, checkHealth)
-│   │       ├── mockProvider.ts # Representative SSS datasets across seafloor topologies
-│   │       └── liveProvider.ts # REST API integration client for backend model services
-│   └── styles.css              # Custom CSS tokens, tactical palettes, and layout rules
-├── package.json
-└── tsconfig.json
-```
-
----
-
-## ⚙️ Modular Model Integration
-
-HydroSentry is engineered with a modular provider pattern in `src/services/detection/`. The frontend communicates with a standardized detection contract:
-
-```typescript
-interface Detection {
-  id: string;
-  type: "known" | "unknown_anomaly";
-  class: "aircraft" | "mine" | "shipwreck" | null;
-  detector_confidence: number | null;
-  anomaly_score: number;
-  physics_score: number;
-  operational_confidence: number;
-  priority: "normal" | "low_priority" | "review_required" | "high_priority";
-  bbox: { x_min: number; y_min: number; x_max: number; y_max: number };
-  location: { lat: number; lon: number } | null;
-}
-```
-
-- **Current Prototype State**: Bundled with a deterministic mock provider simulating varied seafloor scenarios (cluttered rocky seafloor, sand ripple backgrounds, high-density debris zones, and empty control scans) to evaluate UI states and filtering behavior.
-- **Backend Model Connection**: Pre-configured REST client in `liveProvider.ts` targeting:
-  - `POST /api/detect` — Ingests side-scan sonar image files and confidence threshold parameters.
-  - `GET /api/health` — Reports inference model status and runtime version.
-
----
+**https://github.com/Khushicodes15/HydroSentry**
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- **Node.js**: `>= 18.0.0`
-- **npm**: `>= 9.0.0`
+**Prerequisites**: [Node.js](https://nodejs.org/)
 
-### Installation & Run
+```
+git clone https://github.com/saanvi-006/Hydro_Sentry_.git
+cd Hydro_Sentry_
+npm install
+npm run dev
+```
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/saanvi-006/Hydro_Sentry_.git
-   cd Hydro_Sentry_
-   ```
+Open the local URL printed in your terminal (typically `http://localhost:5173`).
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+## 🤖 Development Process & Acknowledgments
 
-3. **Start the local development server**:
-   ```bash
-   npm run dev
-   ```
-   Access the dashboard at [http://localhost:8081](http://localhost:8081) (or the port displayed in your terminal).
-
-4. **Compile production build**:
-   ```bash
-   npm run build
-   ```
-
----
-
-## 📋 Evaluation Context
-
-- **Event**: Smart India Hackathon (SIH)
-- **Problem Statement**: ID 26057 — *AI-Powered Automated Underwater Marine Debris and Anomaly Detection System using Side-Scan Sonar Imagery*
-- **Nodal Agency**: Ministry of Earth Sciences (MoES)
-- **Research Institution**: National Institute of Ocean Technology (NIOT)
+Initial UI scaffolding for this project was built with [Lovable](https://lovable.dev), allowing focus to stay on the detection-data architecture, dashboard interaction design, and survey/reporting workflow.
