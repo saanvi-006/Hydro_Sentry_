@@ -15,7 +15,7 @@ export const Route = createFileRoute("/metrics")({
       {
         name: "description",
         content:
-          "Detailed survey report: findings table, sonar evidence, model validation benchmarks, and export.",
+          "Detailed survey report: findings table, sonar evidence, and export.",
       },
     ],
   }),
@@ -123,12 +123,6 @@ function Reports() {
 
   const { result } = survey;
 
-  // Processing performance — total only; illustrative split
-  const totalMs = result.processing_time_ms;
-  const tilingMs = Math.round(totalMs * 0.12);
-  const detectionMs = Math.round(totalMs * 0.56);
-  const physicsMs = Math.round(totalMs * 0.22);
-  const fusedMs = totalMs - (tilingMs + detectionMs + physicsMs);
 
   return (
     <div className="flex min-h-screen flex-col" style={{ background: "var(--bg-canvas)" }}>
@@ -246,6 +240,7 @@ function Reports() {
           >
             {[
               { label: "Frame ID",   value: result.image_id },
+              { label: "Inference",  value: `${result.processing_time_ms} ms` },
               { label: "Threshold",  value: survey.threshold.toFixed(2) },
               { label: "Region",     value: survey.region ?? "Not specified" },
               { label: "Description", value: survey.description ?? "Not provided" },
@@ -383,185 +378,7 @@ function Reports() {
           </section>
         )}
 
-        {/* ── 4. Model Validation ──────────────────────────── */}
-        <section className="mt-8">
-          <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-[13px] font-semibold uppercase tracking-wider font-mono" style={{ color: "var(--text-secondary)" }}>
-              Model Validation
-            </h2>
-            <span
-              className="font-mono text-[9px] px-1.5 py-0.5 rounded"
-              style={{
-                background: "#FEF3C7",
-                border: "1px solid #F59E0B",
-                color: "#92400E",
-                letterSpacing: "0.04em",
-                fontWeight: 700,
-              }}
-            >
-              HELD-OUT BENCHMARK — NOT LIVE DATA
-            </span>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                label: "Target Precision",
-                value: "0.91",
-                unit: null,
-                sub: "Known target classes",
-                plain: "91% of surfaced contacts represent genuine seabed objects rather than acoustic false alarms.",
-              },
-              {
-                label: "Target Recall",
-                value: "0.87",
-                unit: null,
-                sub: "Known target classes",
-                plain: "87% of all verified seabed targets in the held-out evaluation dataset were successfully flagged.",
-              },
-              {
-                label: "Anomaly Recall",
-                value: "0.79",
-                unit: null,
-                sub: "Unclassified anomalies",
-                plain: "Detection rate for irregular seabed anomalies without requiring a matching prior reference template.",
-              },
-              {
-                label: "Test Dataset",
-                value: "1024×640",
-                unit: null,
-                sub: "SSS frames",
-                plain: "Benchmark run on held-out synthetic and real acoustic side-scan sonar frames not seen during training.",
-              },
-            ].map((m) => (
-              <div
-                key={m.label}
-                className="p-5 flex flex-col justify-between"
-                style={{
-                  background: "var(--bg-surface)",
-                  border: "1px solid var(--border-default)",
-                  borderRadius: "var(--radius)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                <div>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--text-tertiary)" }}>
-                    {m.label}
-                  </span>
-                  <div className="mt-2 flex items-baseline gap-1">
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 30, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>
-                      {m.value}
-                    </span>
-                    {m.unit && (
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 14, color: "var(--text-secondary)", fontWeight: 500 }}>
-                        {m.unit}
-                      </span>
-                    )}
-                  </div>
-                  <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
-                    {m.sub}
-                  </p>
-                </div>
-                <p className="mt-4 pt-3 text-[12px] leading-relaxed" style={{ borderTop: "1px solid var(--border-default)", color: "var(--text-secondary)" }}>
-                  {m.plain}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── 5. Processing Performance ────────────────────── */}
-        <section className="mt-8">
-          <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-[13px] font-semibold uppercase tracking-wider font-mono" style={{ color: "var(--text-secondary)" }}>
-              Processing Performance
-            </h2>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}>
-              Total: {totalMs} ms
-            </span>
-          </div>
-
-          {/* Total time card */}
-          <div
-            className="p-4 mb-4 flex items-center gap-4"
-            style={{
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border-default)",
-              borderRadius: "var(--radius)",
-              boxShadow: "var(--shadow-card)",
-            }}
-          >
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 36, fontWeight: 700, color: "var(--accent-primary)", lineHeight: 1 }}>
-              {totalMs}
-            </span>
-            <div>
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>ms</p>
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>
-                End-to-end frame latency
-              </p>
-            </div>
-          </div>
-
-          {/* Illustrative stage breakdown */}
-          <div
-            className="p-3 mb-4 font-mono text-[11px]"
-            style={{
-              background: "var(--bg-surface-sunken)",
-              border: "1px solid var(--border-default)",
-              borderRadius: "var(--radius)",
-              color: "var(--text-tertiary)",
-            }}
-          >
-            Stage-level timing is illustrative — provider does not expose per-stage telemetry.
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { n: "01", tag: "INGEST & TILE",  title: "Tile Decomposition",       body: "Survey frame partitioned into overlapping acoustic sub-regions.", timing: `~${tilingMs} ms` },
-              { n: "02", tag: "FEATURE MATCH",  title: "Neural Contact Detection", body: "Each sub-tile scanned for known acoustic signatures and ordnance.", timing: `~${detectionMs} ms` },
-              { n: "03", tag: "RAY REJECTION",  title: "Physics Clutter Rejection", body: "Acoustic shadows validated against sensor altitude to suppress scatter.", timing: `~${physicsMs} ms` },
-              { n: "04", tag: "SYNTHESIS",      title: "Fused Contact Synthesis",  body: "Contacts deduplicated, scored, and mapped with tactical priority tags.", timing: `~${fusedMs} ms` },
-            ].map((s) => (
-              <div
-                key={s.n}
-                className="p-5 flex flex-col justify-between"
-                style={{
-                  background: "var(--bg-surface)",
-                  border: "1px solid var(--border-default)",
-                  borderRadius: "var(--radius)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-mono text-[11px] font-bold px-2 py-0.5 rounded text-white"
-                      style={{ background: "var(--accent-primary)" }}
-                    >
-                      {s.n}
-                    </span>
-                    <span className="font-mono text-[10px] uppercase tracking-wider font-semibold" style={{ color: "var(--text-tertiary)" }}>
-                      {s.tag}
-                    </span>
-                  </div>
-                  <h3 className="mt-3 text-[14px] font-semibold tracking-tight" style={{ color: "var(--text-primary)" }}>
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 text-[12px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                    {s.body}
-                  </p>
-                </div>
-                <div
-                  className="mt-4 pt-3 flex items-center justify-between font-mono text-[11px]"
-                  style={{ borderTop: "1px solid var(--border-default)" }}
-                >
-                  <span style={{ color: "var(--text-tertiary)", fontWeight: 500 }}>ILLUSTRATIVE</span>
-                  <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{s.timing}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
 
       <footer style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
