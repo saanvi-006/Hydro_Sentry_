@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import "leaflet/dist/leaflet.css";
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -95,13 +96,13 @@
   --state-muted-meta:        #8A8F99; /* Gray: false-positive counts, filtered counts, meta-stats */
 
   /* Elevation */
-  --shadow-card:   0 1px 3px rgba(18, 22, 28, 0.06), 0 1px 2px rgba(18, 22, 28, 0.04);
+  --shadow-card:   0 1px 3px rgba(18, 22, 28, 0.05), 0 4px 14px rgba(27, 58, 92, 0.035);
   --shadow-sunken: inset 0 1px 2px rgba(18, 22, 28, 0.04);
 
-  /* Distributed gradient mesh stops — light theme */
-  --mesh-stop-1: color-mix(in oklab, var(--accent-primary) 4%, transparent);
-  --mesh-stop-2: color-mix(in oklab, var(--border-strong) 8%, transparent);
-  --mesh-stop-3: color-mix(in oklab, var(--bg-surface) 40%, transparent);
+  /* Distributed gradient mesh stops — light theme (subtle coastal marine & champagne-gold ambient glow) */
+  --mesh-stop-1: color-mix(in oklab, #1B3A5C 6.5%, transparent);  /* Soft marine navy in top-left */
+  --mesh-stop-2: color-mix(in oklab, #C9A15A 7.5%, transparent);  /* Warm champagne gold shimmer in top-right */
+  --mesh-stop-3: color-mix(in oklab, #2563A6 5%, transparent);    /* Coastal azure radiance at the base */
 
   /* Legacy & system aliases mapped to strict tokens */
   --bg-raw:             var(--bg-canvas);
@@ -268,8 +269,8 @@
 @utility gradient-mesh {
   background-color: var(--bg-canvas);
   background-image:
-    radial-gradient(circle at 12% -8%,  var(--mesh-stop-1), transparent 42%),
-    radial-gradient(circle at 108% 15%, var(--mesh-stop-2), transparent 48%),
+    radial-gradient(circle at 14% -6%,  var(--mesh-stop-1), transparent 46%),
+    radial-gradient(circle at 92% 10%,  var(--mesh-stop-2), transparent 48%),
     radial-gradient(circle at 50% 115%, var(--mesh-stop-3), transparent 55%);
   background-attachment: fixed;
 }
@@ -280,13 +281,14 @@
   width: 640px;
   height: 640px;
   border-radius: 50%;
-  background: color-mix(in oklab, var(--accent-primary) 30%, transparent);
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand-gold) 35%, transparent) 0%, color-mix(in oklab, var(--accent-primary) 20%, transparent) 55%, transparent 80%);
   filter: blur(120px);
-  opacity: 0.12;
+  opacity: 0.20;
   pointer-events: none;
   z-index: 0;
 }
 [data-theme="dark"] .hero-glow {
+  background: color-mix(in oklab, var(--accent-primary) 30%, transparent);
   opacity: 0.35;
 }
 
@@ -453,4 +455,109 @@
 /* ── Hero entry animations with longer stagger ──────────────── */
 @utility fade-up-slow {
   animation: hs-fade-up 0.35s ease-out both;
+}
+
+/* ── Tactical Leaflet Map Overrides ─────────────────────────── */
+.leaflet-container {
+  font-family: var(--font-sans, "IBM Plex Sans", sans-serif);
+  background: #08111e !important;
+  outline: none;
+  z-index: 1;
+}
+
+.leaflet-bar {
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-sm, 4px) !important;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-default) !important;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace) !important;
+  font-weight: 600 !important;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--bg-surface-sunken) !important;
+  color: var(--accent-primary) !important;
+}
+
+.leaflet-bar a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(10, 20, 32, 0.75) !important;
+  backdrop-filter: blur(4px);
+  color: #8A8F99 !important;
+  font-family: var(--font-mono, monospace) !important;
+  font-size: 9px !important;
+  padding: 2px 6px !important;
+  border-top-left-radius: 4px;
+}
+
+.leaflet-control-attribution a {
+  color: #C9A15A !important;
+  text-decoration: none;
+}
+
+.leaflet-control-attribution a:hover {
+  text-decoration: underline;
+}
+
+/* Custom Marker Styling */
+.hs-leaflet-marker {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hs-marker-diamond {
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  border: 2px solid;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hs-leaflet-marker:hover .hs-marker-diamond {
+  transform: rotate(45deg) scale(1.25);
+}
+
+.hs-marker-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.hs-leaflet-marker:hover .hs-marker-tag {
+  transform: scale(1.05);
+}
+
+/* Tactical Leaflet Tooltip */
+.leaflet-tooltip {
+  background: var(--bg-surface, #0d1829) !important;
+  color: var(--text-primary, #F1F5F9) !important;
+  border: 1px solid var(--border-default, #2A3649) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+  padding: 4px 7px !important;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: var(--border-default, #2A3649) !important;
 }

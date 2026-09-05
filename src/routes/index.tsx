@@ -383,7 +383,7 @@ function Home() {
 
               {/* Status badge */}
               <p className="mt-6 fade-up stagger-4" style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
-                Operational prototype · MoES SIH Project evaluation · Ministry of Earth Sciences
+                Operational prototype
               </p>
             </div>
 
@@ -402,9 +402,8 @@ function Home() {
         className={`mx-auto max-w-[1400px] px-6 py-16 scroll-reveal ${capabilitiesInView ? "in-view" : ""}`}
       >
         <div className="mb-8">
-          <p className="eyebrow">System Architecture</p>
           <h2
-            className="mt-1 text-2xl font-bold tracking-tight"
+            className="text-2xl font-bold tracking-tight"
             style={{ color: "var(--text-primary)" }}
           >
             Capabilities
@@ -466,7 +465,7 @@ function Home() {
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Operational Survey Platform</span>
-          <span>Ministry of Earth Sciences · SIH Project</span>
+          <span>SIH Project</span>
         </div>
       </footer>
     </div>

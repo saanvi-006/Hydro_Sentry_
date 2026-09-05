@@ -395,7 +395,7 @@ function Reports() {
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Survey Report</span>
-          <span>Ministry of Earth Sciences · SIH Project</span>
+          <span>SIH Project</span>
         </div>
       </footer>
     </div>

@@ -94,29 +94,6 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          {/* Persistent operational readiness chip */}
-          <div
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded"
-            style={{
-              background: "var(--bg-surface-sunken)",
-              border: "1px solid var(--border-default)",
-              marginLeft: 8,
-            }}
-          >
-            <span className="h-2 w-2 rounded-full bg-[#1E7A5C]" />
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 10,
-                fontWeight: 500,
-                color: "var(--text-secondary)",
-                letterSpacing: "0.04em",
-              }}
-            >
-              SYS // READY
-            </span>
-          </div>
-
           {/* Theme switcher toggle */}
           <button
             type="button"
