@@ -67,6 +67,7 @@ function Gateway({
   onOpen: (s: SurveyRecord) => void;
 }) {
   const surveys = surveyProvider.getAll();
+  const [activeCard, setActiveCard] = useState<0 | 1>(0);
 
   function formatTs(ts: number) {
     return new Date(ts).toLocaleString("en-IN", {
@@ -79,40 +80,76 @@ function Gateway({
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] w-full px-6 pt-8 pb-16 flex-1 flex flex-col fade-up">
-      {/* Header */}
-      <div className="pb-6" style={{ borderBottom: "1px solid var(--border-default)" }}>
-        <p className="eyebrow">Survey Gateway</p>
-        <h1
-          className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
-          style={{ color: "var(--text-primary)" }}
-        >
-          Sonar Survey Workspace
-        </h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-          Start a new acoustic survey analysis or continue from a previous mission run.
-        </p>
+    <main className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 pt-4 pb-12 flex-1 flex flex-col gap-3.5 fade-up min-h-0">
+      {/* ── Page header ──────────────────────────────────── */}
+      <div className="shrink-0 pb-4" style={{ borderBottom: "1px solid var(--border-default)" }}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="eyebrow">Survey Gateway</p>
+              <span
+                className="font-mono text-[9px] px-1.5 py-0.5 rounded"
+                style={{
+                  background: "var(--bg-surface-sunken)",
+                  border: "1px solid var(--border-strong)",
+                  color: "var(--text-tertiary)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                MISSION WORKSPACE
+              </span>
+            </div>
+            <h1
+              className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Sonar Survey Workspace
+            </h1>
+            <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-secondary)" }}>
+              Start a new acoustic survey analysis or continue from a previous mission run.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onNew}
+              className="inline-flex h-9 items-center justify-center gap-1.5 px-4 font-semibold transition-opacity hover:opacity-90 cursor-pointer shrink-0 text-xs"
+              style={{
+                borderRadius: "var(--radius)",
+                background: "var(--accent-primary)",
+                color: "var(--accent-primary-fg)",
+              }}
+            >
+              + New Survey
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Action cards — side by side in perfect 2-column layout */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Action cards — side by side in perfect 2-column layout with dynamic hover highlight */}
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* 1. Start New Analysis */}
         <button
           type="button"
           onClick={onNew}
-          className="flex flex-col justify-between gap-4 p-6 text-left transition-all duration-150 hover:shadow-md cursor-pointer group"
+          onMouseEnter={() => setActiveCard(0)}
+          className="flex flex-col justify-between gap-4 p-6 text-left transition-all duration-200 hover:shadow-md cursor-pointer group"
           style={{
             background: "var(--bg-surface)",
-            border: "2px solid var(--accent-primary)",
+            border: activeCard === 0 ? "2px solid var(--accent-primary)" : "2px solid var(--border-default)",
             borderRadius: "var(--radius)",
-            boxShadow: "var(--shadow-card)",
+            boxShadow: activeCard === 0 ? "0 0 0 1px var(--accent-primary), var(--shadow-card)" : "var(--shadow-card)",
           }}
         >
           <div>
             <div className="flex items-center justify-between w-full mb-3">
               <span
-                className="font-mono text-[10px] font-bold px-2.5 py-1 rounded text-white tracking-wider"
-                style={{ background: "var(--accent-primary)" }}
+                className="font-mono text-[10px] font-bold px-2.5 py-1 rounded tracking-wider transition-colors"
+                style={{
+                  background: activeCard === 0 ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
+                  color: activeCard === 0 ? "var(--accent-primary-fg)" : "var(--text-secondary)",
+                  border: `1px solid ${activeCard === 0 ? "var(--accent-primary)" : "var(--border-strong)"}`,
+                }}
               >
                 + NEW SURVEY
               </span>
@@ -142,23 +179,24 @@ function Gateway({
         <button
           type="button"
           onClick={() => surveys.length > 0 && onOpen(surveys[0]!)}
+          onMouseEnter={() => surveys.length > 0 && setActiveCard(1)}
           disabled={surveys.length === 0}
-          className="flex flex-col justify-between gap-4 p-6 text-left transition-all duration-150 hover:shadow-md cursor-pointer disabled:opacity-50 group"
+          className="flex flex-col justify-between gap-4 p-6 text-left transition-all duration-200 hover:shadow-md cursor-pointer disabled:opacity-50 group"
           style={{
             background: "var(--bg-surface)",
-            border: "1px solid var(--border-default)",
+            border: activeCard === 1 ? "2px solid var(--accent-primary)" : "2px solid var(--border-default)",
             borderRadius: "var(--radius)",
-            boxShadow: "var(--shadow-card)",
+            boxShadow: activeCard === 1 ? "0 0 0 1px var(--accent-primary), var(--shadow-card)" : "var(--shadow-card)",
           }}
         >
           <div>
             <div className="flex items-center justify-between w-full mb-3">
               <span
-                className="font-mono text-[10px] font-bold px-2.5 py-1 rounded tracking-wider"
+                className="font-mono text-[10px] font-bold px-2.5 py-1 rounded tracking-wider transition-colors"
                 style={{
-                  background: "var(--bg-surface-sunken)",
-                  border: "1px solid var(--border-strong)",
-                  color: "var(--text-secondary)",
+                  background: activeCard === 1 ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
+                  color: activeCard === 1 ? "var(--accent-primary-fg)" : "var(--text-secondary)",
+                  border: `1px solid ${activeCard === 1 ? "var(--accent-primary)" : "var(--border-strong)"}`,
                 }}
               >
                 OPEN EXISTING
@@ -277,7 +315,7 @@ function Gateway({
       >
         PROTOTYPE DATA — MOCK PROVIDER
       </p>
-    </div>
+    </main>
   );
 }
 
@@ -313,27 +351,55 @@ function SetupForm({
   }
 
   return (
-    <div className="mx-auto max-w-[680px] w-full px-6 pt-8 pb-16 fade-up">
-      {/* Back */}
-      <button
-        type="button"
-        onClick={onCancel}
-        className="flex items-center gap-1.5 mb-6 transition-opacity hover:opacity-70 cursor-pointer"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-secondary)" }}
-      >
-        <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
-        Back to Surveys
-      </button>
+    <main className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 pt-4 pb-16 flex-1 flex flex-col gap-3.5 fade-up min-h-0">
+      {/* ── Page header ──────────────────────────────────── */}
+      <div className="shrink-0 pb-4" style={{ borderBottom: "1px solid var(--border-default)" }}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="eyebrow">Survey Setup</p>
+              <span
+                className="font-mono text-[9px] px-1.5 py-0.5 rounded"
+                style={{
+                  background: "var(--bg-surface-sunken)",
+                  border: "1px solid var(--border-strong)",
+                  color: "var(--text-tertiary)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                NEW MISSION
+              </span>
+            </div>
+            <h1
+              className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Configure Survey Parameters
+            </h1>
+            <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-secondary)" }}>
+              Upload side-scan sonar acoustic imagery and configure anomaly detection thresholds.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="inline-flex h-9 items-center justify-center gap-1.5 px-4 font-semibold transition-opacity hover:opacity-80 cursor-pointer shrink-0 text-xs"
+              style={{
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border-default)",
+                background: "var(--bg-surface)",
+                color: "var(--text-primary)",
+              }}
+            >
+              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
+              Back to Surveys
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <p className="eyebrow">New Survey Setup</p>
-      <h1
-        className="mt-1 text-xl font-bold tracking-tight"
-        style={{ color: "var(--text-primary)" }}
-      >
-        Configure Survey Parameters
-      </h1>
-
-      <div className="mt-6 space-y-5">
+      <div className="mx-auto max-w-[680px] w-full pt-4 space-y-5">
         {/* Survey name (required) */}
         <div>
           <label
@@ -495,7 +561,7 @@ function SetupForm({
           </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

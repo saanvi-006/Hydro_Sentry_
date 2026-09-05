@@ -414,11 +414,11 @@ function Home() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
           {pillars.map(({ step, code, title, body, icon: Icon, Mini }, i) => (
             <div
               key={title}
-              className={`scroll-reveal ${capabilitiesInView ? "in-view" : ""} reveal-delay-${i + 1} card-elevated flex flex-col justify-between gap-4 p-5`}
+              className={`scroll-reveal ${capabilitiesInView ? "in-view" : ""} reveal-delay-${i + 1} card-elevated flex flex-col p-4 sm:p-5 h-full`}
               style={{
                 background: "var(--bg-surface)",
                 border: "1px solid var(--border-default)",
@@ -427,7 +427,7 @@ function Home() {
               }}
             >
               <Mini />
-              <div>
+              <div className="mt-4 flex flex-col flex-1">
                 {/* Header with visual anchor icon and step */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -441,10 +441,13 @@ function Home() {
                       {code}
                     </span>
                   </div>
-                  <Icon className="h-4 w-4 text-[var(--text-secondary)]" strokeWidth={1.5} />
+                  <Icon className="h-4 w-4 text-[var(--text-secondary)] shrink-0" strokeWidth={1.5} />
                 </div>
 
-                <h3 className="mt-2.5 text-[14px] font-semibold tracking-tight" style={{ color: "var(--text-primary)" }}>
+                <h3
+                  className="mt-2.5 text-[14px] font-semibold tracking-tight leading-snug min-h-[38px] flex items-start"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   {title}
                 </h3>
                 <p className="mt-2 text-[12px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>

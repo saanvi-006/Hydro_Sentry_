@@ -6,7 +6,7 @@ export function PriorityBadge({ priority, className }: { priority: string; class
       return (
         <span
           className={cn(
-            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-mono text-[8.5px] font-bold whitespace-nowrap shrink-0",
+            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono text-[9.5px] font-bold whitespace-nowrap shrink-0",
             className
           )}
           style={{
@@ -29,7 +29,7 @@ export function PriorityBadge({ priority, className }: { priority: string; class
       return (
         <span
           className={cn(
-            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-mono text-[8.5px] font-bold whitespace-nowrap shrink-0",
+            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono text-[9.5px] font-bold whitespace-nowrap shrink-0",
             className
           )}
           style={{
@@ -52,7 +52,7 @@ export function PriorityBadge({ priority, className }: { priority: string; class
       return (
         <span
           className={cn(
-            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-mono text-[8.5px] font-bold whitespace-nowrap shrink-0",
+            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono text-[9.5px] font-bold whitespace-nowrap shrink-0",
             className
           )}
           style={{
@@ -75,7 +75,7 @@ export function PriorityBadge({ priority, className }: { priority: string; class
       return (
         <span
           className={cn(
-            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-mono text-[8.5px] font-bold whitespace-nowrap shrink-0",
+            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono text-[9.5px] font-bold whitespace-nowrap shrink-0",
             className
           )}
           style={{
