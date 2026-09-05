@@ -92,11 +92,11 @@ export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect }
                 top,
                 width,
                 height,
-                borderColor: sem.hex,
+                borderColor: sem.color,
                 borderStyle: sem.isDashed ? "dashed" : "solid",
                 borderWidth: active ? 2.5 : 1.5,
-                backgroundColor: `${sem.hex}${Math.round(fillAlpha * 255).toString(16).padStart(2, "0")}`,
-                boxShadow: active ? `0 0 0 2px #FFFFFF, 0 0 0 4px ${sem.hex}` : undefined,
+                backgroundColor: `color-mix(in srgb, ${sem.color} ${Math.round(fillAlpha * 100)}%, transparent)`,
+                boxShadow: active ? `0 0 0 2px var(--bg-surface), 0 0 0 4px ${sem.color}` : undefined,
                 opacity: borderAlpha,
               }}
               className="absolute transition-all hover:opacity-100 cursor-pointer"
@@ -109,7 +109,7 @@ export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect }
                   fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: "0.03em",
-                  backgroundColor: sem.hex,
+                  backgroundColor: sem.color,
                   color: "#FFFFFF",
                   borderRadius: 2,
                   opacity: sem.badgeOpacity,

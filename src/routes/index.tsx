@@ -324,13 +324,13 @@ function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg-canvas)" }}>
+    <div className="min-h-screen gradient-mesh">
       <SiteHeader />
 
       {/* ── Hero ────────────────────────────────────────────── */}
       <section
-        className="relative overflow-hidden"
-        style={{ borderBottom: "1px solid var(--border-default)", background: "var(--bg-surface)" }}
+        className="relative overflow-hidden grid-field"
+        style={{ borderBottom: "1px solid var(--border-default)" }}
       >
         <div className="relative mx-auto max-w-[1400px] px-6 py-12 md:py-16">
           <div className="grid items-center gap-12 md:grid-cols-2">
@@ -387,8 +387,9 @@ function Home() {
               </p>
             </div>
 
-            {/* Right: sonar product preview */}
-            <div className="fade-up stagger-2">
+            {/* Right: sonar product preview with ambient hero glow */}
+            <div className="fade-up stagger-2 relative">
+              <div className="hero-glow -top-24 -right-16" aria-hidden="true" />
               <SonarPreviewPanel />
             </div>
           </div>

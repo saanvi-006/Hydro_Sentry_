@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 
 /** Concentric-arcs sonar icon */
 function SonarIcon() {
@@ -19,6 +21,24 @@ const navLinks = [
 ] as const;
 
 export function SiteHeader() {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const current = (document.documentElement.getAttribute("data-theme") as "light" | "dark") || "light";
+    setTheme(current);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("hydrosentry-theme", next);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <header
       className="sticky top-0 z-40 backdrop-blur"
@@ -58,7 +78,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        {/* Navigation + operational status indicator */}
+        {/* Navigation + operational status indicator + theme toggle */}
         <div className="flex items-center gap-2">
           <nav className="flex items-center gap-1">
             {navLinks.map(({ to, label, exact }) => (
@@ -96,6 +116,27 @@ export function SiteHeader() {
               SYS // READY
             </span>
           </div>
+
+          {/* Theme switcher toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+            title={`Active: ${theme === "light" ? "Aero-Hydro (Light)" : "Abyssal Indigo (Dark)"} — click to switch`}
+            className="flex items-center justify-center h-7 w-7 rounded cursor-pointer transition-colors hover:bg-[var(--bg-surface-sunken)] hover:border-[var(--border-strong)]"
+            style={{
+              background: "var(--bg-surface-sunken)",
+              border: "1px solid var(--border-default)",
+              color: "var(--text-secondary)",
+              marginLeft: 4,
+            }}
+          >
+            {theme === "light" ? (
+              <Moon className="h-3.5 w-3.5" strokeWidth={1.75} />
+            ) : (
+              <Sun className="h-3.5 w-3.5" strokeWidth={1.75} style={{ color: "var(--accent-primary)" }} />
+            )}
+          </button>
         </div>
       </div>
     </header>

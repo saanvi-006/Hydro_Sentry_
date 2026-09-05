@@ -71,8 +71,8 @@
   color-scheme: light;
   --radius: 6px;
 
-  /* ── 1. Strict Light Palette Tokens (Single source of truth) ── */
-  --bg-canvas:          #F4F5F7; /* page background — cool neutral, not warm/cream */
+  /* ── 1. Strict Light Palette Tokens ("Aero-Hydro" Enhanced) ── */
+  --bg-canvas:          #FAFAFA; /* softer, less "office gray" */
   --bg-surface:         #FFFFFF; /* cards, panels */
   --bg-surface-sunken:  #ECEEF1; /* input wells, inactive tabs, code/mono readouts, canvas well */
   --border-default:     #D8DBE0; /* 1px card borders — visible without shadow alone */
@@ -96,6 +96,11 @@
   /* Elevation */
   --shadow-card:   0 1px 3px rgba(18, 22, 28, 0.06), 0 1px 2px rgba(18, 22, 28, 0.04);
   --shadow-sunken: inset 0 1px 2px rgba(18, 22, 28, 0.04);
+
+  /* Distributed gradient mesh stops — light theme */
+  --mesh-stop-1: color-mix(in oklab, var(--accent-primary) 4%, transparent);
+  --mesh-stop-2: color-mix(in oklab, var(--border-strong) 8%, transparent);
+  --mesh-stop-3: color-mix(in oklab, var(--bg-surface) 40%, transparent);
 
   /* Legacy & system aliases mapped to strict tokens */
   --bg-raw:             var(--bg-canvas);
@@ -141,6 +146,67 @@
   --panel:               var(--bg-surface);
 }
 
+/* ── 2. Dark Theme: "Abyssal Indigo" ─────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* ── Canvas & surfaces ── */
+  --bg-canvas:          #070B12;  /* near-black base, corners of the gradient mesh */
+  --bg-surface:         #101724;  /* elevated panel/card surface */
+  --bg-surface-sunken:  #0A0F19;  /* recessed wells, inactive tabs, code readouts */
+  --border-default:     #232C3D;
+  --border-strong:      #34405A;
+
+  /* ── Text (all ≥ 4.5:1 on --bg-surface) ── */
+  --text-primary:       #F2F4F8;  /* near-white, not pure white — reduces glare */
+  --text-secondary:     #A6B0C3;
+  --text-tertiary:      #6E7A90;
+
+  /* ── Brand accent (decorative/navigation only — never on detection data) ── */
+  --accent-primary:     #C9A15A;  /* muted brass */
+  --accent-primary-fg:  #14110A;
+
+  /* ── Semantic detection states — same hues, retuned for contrast on dark ── */
+  --state-known-confirmed:   #E5544A;  /* brightened red, still unmistakably "red/threat" */
+  --state-unclassified:      #8890AC;  /* lightened slate */
+  --state-classified-benign: #5E93D6;  /* brightened steel-blue — NOT cyan */
+  --state-caution:           #E2954A;  /* brightened amber */
+  --state-muted-meta:        #7C8494;
+
+  /* ── Elevation ── */
+  --shadow-card:   0 1px 3px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-sunken: inset 0 1px 2px rgba(0,0,0,0.5);
+
+  /* ── Distributed gradient mesh stops — dark theme ── */
+  --mesh-stop-1: color-mix(in oklab, var(--accent-primary) 14%, transparent);
+  --mesh-stop-2: color-mix(in oklab, var(--border-strong) 35%, transparent);
+  --mesh-stop-3: color-mix(in oklab, var(--bg-surface) 60%, transparent);
+
+  /* Tailwind compat overrides */
+  --background:          var(--bg-canvas);
+  --foreground:          var(--text-primary);
+  --card:                var(--bg-surface);
+  --card-foreground:     var(--text-primary);
+  --popover:             var(--bg-surface);
+  --popover-foreground:  var(--text-primary);
+  --primary:             var(--accent-primary);
+  --primary-foreground:  var(--accent-primary-fg);
+  --secondary:           var(--bg-surface-sunken);
+  --secondary-foreground: var(--text-primary);
+  --muted:               var(--bg-surface-sunken);
+  --muted-foreground:    var(--text-secondary);
+  --accent:              color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --accent-foreground:   var(--text-primary);
+  --destructive:         var(--state-known-confirmed);
+  --destructive-foreground: #FFFFFF;
+  --border:              var(--border-default);
+  --input:               var(--bg-surface-sunken);
+  --ring:                var(--accent-primary);
+  --surface:             var(--bg-surface);
+  --hairline:            var(--border-default);
+  --panel:               var(--bg-surface);
+}
+
 /* ── Base layer ──────────────────────────────────────────────── */
 @layer base {
   * {
@@ -153,7 +219,7 @@
     color: var(--text-primary);
     font-family: var(--font-sans);
     font-size: 15px;
-    line-height: 1.55;
+    line-height: 1.68;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -194,6 +260,32 @@
     box-shadow: var(--shadow-sunken);
     border-radius: var(--radius);
   }
+}
+
+/* ── Distributed gradient mesh — page-level background ─────────── */
+@utility gradient-mesh {
+  background-color: var(--bg-canvas);
+  background-image:
+    radial-gradient(circle at 12% -8%,  var(--mesh-stop-1), transparent 42%),
+    radial-gradient(circle at 108% 15%, var(--mesh-stop-2), transparent 48%),
+    radial-gradient(circle at 50% 115%, var(--mesh-stop-3), transparent 55%);
+  background-attachment: fixed;
+}
+
+/* ── Hero glow blob: soft ambient accent behind hero visual ──── */
+.hero-glow {
+  position: absolute;
+  width: 640px;
+  height: 640px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--accent-primary) 30%, transparent);
+  filter: blur(120px);
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="dark"] .hero-glow {
+  opacity: 0.35;
 }
 
 /* ── Grid field: sonar/map background texture ────────────────── */

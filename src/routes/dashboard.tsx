@@ -776,7 +776,8 @@ function Dashboard() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "var(--bg-canvas)" }}>
+    /* Guardrail: data-dense console — gradient-mesh on shell only, do NOT add grid-field dot texture here */
+    <div className="flex min-h-screen flex-col gradient-mesh">
       <SiteHeader />
 
       {error && (

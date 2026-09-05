@@ -95,7 +95,8 @@ function Reports() {
 
   if (!survey) {
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: "var(--bg-canvas)" }}>
+      /* Guardrail: data-dense console — gradient-mesh on shell only, do NOT add grid-field dot texture here */
+      <div className="flex min-h-screen flex-col gradient-mesh">
         <SiteHeader />
         <main className="mx-auto max-w-[1400px] w-full px-6 py-20 flex-1 flex flex-col items-center justify-center gap-4 text-center">
           <p style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
@@ -123,9 +124,9 @@ function Reports() {
 
   const { result } = survey;
 
-
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "var(--bg-canvas)" }}>
+    /* Guardrail: data-dense console — gradient-mesh on shell only, do NOT add grid-field dot texture here */
+    <div className="flex min-h-screen flex-col gradient-mesh">
       <SiteHeader />
 
       <main className="mx-auto max-w-[1400px] w-full px-6 py-10 flex-1 fade-up">

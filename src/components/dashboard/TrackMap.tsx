@@ -47,16 +47,25 @@ export function TrackMap({
       >
         <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0">
-            <polygon points="5,1 9,9 1,9" fill="#1B3A5C" />
+            <polygon points="5,1 9,9 1,9" fill="var(--accent-primary)" />
           </svg>
           <span>SENSOR TOWFISH</span>
         </div>
         <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-          <span className="block h-2 w-2 rotate-45 border border-[#2563A6] bg-[#2563A6]/40" />
+          <span
+            className="block h-2 w-2 rotate-45"
+            style={{
+              border: "1px solid var(--state-classified-benign)",
+              backgroundColor: "color-mix(in srgb, var(--state-classified-benign) 40%, transparent)",
+            }}
+          />
           <span>CONTACT (ID TAG)</span>
         </div>
         <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-          <span className="h-0.5 w-3.5 border-t border-dashed border-[#12161C]" />
+          <span
+            className="h-0.5 w-3.5"
+            style={{ borderTop: "1px dashed var(--text-primary)" }}
+          />
           <span>TRACKLINE PATH</span>
         </div>
       </div>
@@ -143,11 +152,11 @@ export function TrackMap({
           style={{ left: "15%", top: "72%" }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <polygon points="7,2 12,12 2,12" fill="#1B3A5C" stroke="#FFFFFF" strokeWidth="1" />
+            <polygon points="7,2 12,12 2,12" fill="var(--accent-primary)" stroke="var(--bg-surface)" strokeWidth="1" />
           </svg>
           <span
-            className="rounded px-1 py-0.5 font-mono text-[8px] font-bold tracking-wider uppercase text-white shadow-xs"
-            style={{ background: "#1B3A5C" }}
+            className="rounded px-1 py-0.5 font-mono text-[8px] font-bold tracking-wider uppercase shadow-xs"
+            style={{ background: "var(--accent-primary)", color: "var(--accent-primary-fg)" }}
           >
             TOWFISH
           </span>
@@ -172,18 +181,20 @@ export function TrackMap({
               <span
                 className="block h-3 w-3 rotate-45 shrink-0"
                 style={{
-                  border: `2px solid ${sem.hex}`,
-                  backgroundColor: isSelected ? sem.hex : "#FFFFFF",
-                  boxShadow: isSelected ? `0 0 0 3px ${sem.hex}44` : "var(--shadow-card)",
+                  border: `2px solid ${sem.color}`,
+                  backgroundColor: isSelected ? sem.color : "var(--bg-surface)",
+                  boxShadow: isSelected
+                    ? `0 0 0 3px color-mix(in srgb, ${sem.color} 30%, transparent)`
+                    : "var(--shadow-card)",
                 }}
               />
               {/* On-map persistent ID pill */}
               <span
                 className="rounded px-1.5 py-0.5 font-mono text-[9px] font-semibold whitespace-nowrap shadow-xs"
                 style={{
-                  backgroundColor: isSelected ? sem.hex : "var(--bg-surface)",
+                  backgroundColor: isSelected ? sem.color : "var(--bg-surface)",
                   color: isSelected ? "#FFFFFF" : "var(--text-primary)",
-                  border: `1px solid ${sem.hex}`,
+                  border: `1px solid ${sem.color}`,
                 }}
               >
                 {d.id}
@@ -213,15 +224,15 @@ export function TrackMap({
               className="flex items-center justify-between px-3 py-1.5 rounded cursor-pointer transition-colors"
               style={{
                 background: isSelected ? "var(--bg-surface-sunken)" : "var(--bg-surface)",
-                border: `1px solid ${isSelected ? sem.hex : "var(--border-default)"}`,
+                border: `1px solid ${isSelected ? sem.color : "var(--border-default)"}`,
               }}
             >
               <div className="flex items-center gap-2">
                 <span
                   className="h-2 w-2 rotate-45 shrink-0"
-                  style={{ backgroundColor: sem.hex }}
+                  style={{ backgroundColor: sem.color }}
                 />
-                <span className="font-mono text-[11px] font-semibold" style={{ color: sem.hex }}>
+                <span className="font-mono text-[11px] font-semibold" style={{ color: sem.color }}>
                   {d.id}
                 </span>
                 <span className="font-sans text-[11px] text-[var(--text-secondary)]">

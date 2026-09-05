@@ -84,7 +84,7 @@ export function DetectionCard({
       style={{
         background: "var(--bg-surface)",
         border: `1px solid ${active ? "var(--accent-primary)" : "var(--border-default)"}`,
-        borderLeft: `3px solid ${sem.hex}`,
+        borderLeft: `3px solid ${sem.color}`,
         boxShadow: "var(--shadow-card)",
       }}
     >
@@ -128,7 +128,7 @@ export function DetectionCard({
               fontWeight: 600,
               letterSpacing: "0.04em",
               textTransform: "uppercase",
-              backgroundColor: sem.hex,
+              backgroundColor: sem.color,
               color: "#FFFFFF",
               opacity: sem.badgeOpacity,
             }}
@@ -140,15 +140,15 @@ export function DetectionCard({
         {/* Score bars — confidence-weighted */}
         <div className="mt-3 space-y-2">
           {unknown ? (
-            <ScoreBar label="Anomaly Score" value={d.anomaly_score} fillColor={sem.hex} />
+            <ScoreBar label="Anomaly Score" value={d.anomaly_score} fillColor={sem.color} />
           ) : (
             <ScoreBar
               label="Detector Conf"
               value={d.detector_confidence ?? 0}
-              fillColor={sem.hex}
+              fillColor={sem.color}
             />
           )}
-          <ScoreBar label="Physics Shadow Match" value={d.physics_score} fillColor={sem.hex} />
+          <ScoreBar label="Physics Shadow Match" value={d.physics_score} fillColor={sem.color} />
         </div>
 
         {/* Footer row: operational confidence + coordinates */}

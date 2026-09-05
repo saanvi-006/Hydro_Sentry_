@@ -64,7 +64,8 @@ function Overview() {
   const totalUnclassified = surveys.reduce((s, r) => s + r.result.summary.unknown_anomaly_count, 0);
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "var(--bg-canvas)" }}>
+    /* Guardrail: data-dense console — gradient-mesh on shell only, do NOT add grid-field dot texture here */
+    <div className="flex min-h-screen flex-col gradient-mesh">
       <SiteHeader />
 
       <main className="mx-auto max-w-[1400px] w-full px-6 py-10 flex-1 fade-up">
