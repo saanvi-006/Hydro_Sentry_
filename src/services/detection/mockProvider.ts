@@ -115,7 +115,7 @@ const scanEmpty: DetectionResult = {
     total_detections: 0,
     known_count: 0,
     unknown_anomaly_count: 0,
-    false_positives_filtered: 9,
+    false_positives_filtered: 0,
   },
 };
 

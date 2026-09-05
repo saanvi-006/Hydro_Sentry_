@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Detection } from "@/services/detection";
-import { PRIORITY_COLOR } from "@/services/detection";
+import { getContactSemantic } from "@/services/detection";
 
 interface Props {
   detections: Detection[];
@@ -25,20 +25,19 @@ function drawSonar(canvas: HTMLCanvasElement, enhanced: boolean, seed: string) {
 
   const img = ctx.createImageData(w, h);
   for (let y = 0; y < h; y++) {
-    // across-track intensity falloff, plus a nadir band down the middle
     const nadir = Math.exp(-(((y - h / 2) / (h * 0.012)) ** 2));
     for (let x = 0; x < w; x++) {
       const band = 0.5 + 0.5 * Math.sin(x * 0.006 + y * 0.02);
       const grain = rand();
-      let v = 26 + band * 46 + grain * (enhanced ? 42 : 78);
+      let v = 32 + band * 44 + grain * (enhanced ? 38 : 72);
       v -= nadir * 24;
-      v += Math.exp(-(((x - w * 0.72) / (w * 0.09)) ** 2)) * 22;
-      if (enhanced) v = 18 + (v - 18) * 1.25;
+      v += Math.exp(-(((x - w * 0.72) / (w * 0.09)) ** 2)) * 24;
+      if (enhanced) v = 24 + (v - 24) * 1.25;
       const c = Math.max(0, Math.min(255, v));
       const i = (y * w + x) * 4;
-      img.data[i] = c;
-      img.data[i + 1] = c;
-      img.data[i + 2] = c + 2;
+      img.data[i]     = c;
+      img.data[i + 1] = c + 1;
+      img.data[i + 2] = c + 3;
       img.data[i + 3] = 255;
     }
   }
@@ -53,17 +52,36 @@ export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect }
   }, [enhanced, seed]);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-sm border border-hairline bg-black">
+    <div
+      className="surface-sunken relative w-full overflow-hidden"
+      style={{
+        borderRadius: "var(--radius)",
+        border: "1px solid var(--border-default)",
+        background: "var(--bg-surface-sunken)",
+      }}
+    >
       <canvas ref={ref} width={1024} height={640} className="block w-full" />
+
+      {/* Center nadir track indicator */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-px opacity-40"
+        style={{ borderTop: "1px dashed var(--border-strong)" }}
+      />
+
+      {/* Bounding box overlays */}
       <div className="absolute inset-0">
         {detections.map((d) => {
-          const left = `${d.bbox.x_min * 100}%`;
-          const top = `${d.bbox.y_min * 100}%`;
-          const width = `${(d.bbox.x_max - d.bbox.x_min) * 100}%`;
+          const sem    = getContactSemantic(d);
+          const left   = `${d.bbox.x_min * 100}%`;
+          const top    = `${d.bbox.y_min * 100}%`;
+          const width  = `${(d.bbox.x_max - d.bbox.x_min) * 100}%`;
           const height = `${(d.bbox.y_max - d.bbox.y_min) * 100}%`;
-          const color = PRIORITY_COLOR[d.priority];
-          const unknown = d.type === "unknown_anomaly";
           const active = selectedId === d.id;
+
+          // Confidence-weighted fill and border
+          const borderAlpha = Math.max(0.5, Math.min(1, 0.35 + sem.confidence * 0.65));
+          const fillAlpha   = Math.max(0.08, sem.confidence * 0.22);
+
           return (
             <button
               key={d.id}
@@ -74,20 +92,30 @@ export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect }
                 top,
                 width,
                 height,
-                borderColor: color,
-                borderStyle: unknown ? "dashed" : "solid",
-                boxShadow: active ? `0 0 0 1px ${color}` : undefined,
+                borderColor: sem.hex,
+                borderStyle: sem.isDashed ? "dashed" : "solid",
+                borderWidth: active ? 2.5 : 1.5,
+                backgroundColor: `${sem.hex}${Math.round(fillAlpha * 255).toString(16).padStart(2, "0")}`,
+                boxShadow: active ? `0 0 0 2px #FFFFFF, 0 0 0 4px ${sem.hex}` : undefined,
+                opacity: borderAlpha,
               }}
-              className="absolute border-2 transition-opacity hover:opacity-80"
+              className="absolute transition-all hover:opacity-100 cursor-pointer"
             >
+              {/* High-contrast identification tag */}
               <span
-                className="absolute -top-[18px] left-0 whitespace-nowrap px-1 font-mono text-[10px] tracking-wide text-black"
-                style={{ backgroundColor: color }}
+                className="absolute -top-[19px] left-0 whitespace-nowrap px-1.5 py-0.5"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.03em",
+                  backgroundColor: sem.hex,
+                  color: "#FFFFFF",
+                  borderRadius: 2,
+                  opacity: sem.badgeOpacity,
+                }}
               >
-                {unknown ? "unclassified" : d.class}
-                {d.detector_confidence !== null
-                  ? ` ${(d.detector_confidence * 100).toFixed(0)}%`
-                  : ""}
+                {sem.shortLabel} {Math.round(sem.confidence * 100)}%
               </span>
             </button>
           );

@@ -1,17 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
 @theme inline {
-  --radius-sm: 2px;
-  --radius-md: 3px;
-  --radius-lg: 4px;
-  --radius-xl: 6px;
+  /* Border radius — practical, not decorative */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
   --radius-2xl: 8px;
-  --radius-3xl: 10px;
-  --radius-4xl: 12px;
-  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --radius-3xl: 8px;
+  --radius-4xl: 8px;
+
+  /* Typography */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Strict Light Palette Tokens */
+  --color-bg-canvas: var(--bg-canvas);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-sunken: var(--bg-surface-sunken);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-fg: var(--accent-primary-fg);
+
+  --color-state-known-confirmed: var(--state-known-confirmed);
+  --color-state-unclassified: var(--state-unclassified);
+  --color-state-classified-benign: var(--state-classified-benign);
+  --color-state-caution: var(--state-caution);
+  --color-state-muted-meta: var(--state-muted-meta);
+
+  /* Map CSS vars → Tailwind color utilities */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -38,71 +64,152 @@
   --color-pri-review: var(--pri-review);
   --color-pri-normal: var(--pri-normal);
   --color-pri-low: var(--pri-low);
+  --color-panel: var(--panel);
 }
 
 :root {
-  color-scheme: dark;
-  --radius: 3px;
-  --background: oklch(0.18 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: oklch(0.213 0 0);
-  --card-foreground: oklch(0.96 0 0);
-  --popover: oklch(0.213 0 0);
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(1 0 0);
-  --primary-foreground: oklch(0.16 0 0);
-  --secondary: oklch(0.26 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: oklch(0.26 0 0);
-  --muted-foreground: oklch(0.64 0 0);
-  --accent: oklch(0.28 0 0);
-  --accent-foreground: oklch(0.96 0 0);
-  --destructive: oklch(0.64 0.21 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.27 0 0);
-  --input: oklch(0.27 0 0);
-  --ring: oklch(0.45 0 0);
-  --surface: oklch(0.213 0 0);
-  --hairline: oklch(0.27 0 0);
-  --pri-high: #ff453a;
-  --pri-review: #ff9f0a;
-  --pri-normal: #32ade6;
-  --pri-low: #8e8e93;
+  color-scheme: light;
+  --radius: 6px;
+
+  /* ── 1. Strict Light Palette Tokens (Single source of truth) ── */
+  --bg-canvas:          #F4F5F7; /* page background — cool neutral, not warm/cream */
+  --bg-surface:         #FFFFFF; /* cards, panels */
+  --bg-surface-sunken:  #ECEEF1; /* input wells, inactive tabs, code/mono readouts, canvas well */
+  --border-default:     #D8DBE0; /* 1px card borders — visible without shadow alone */
+  --border-strong:      #B7BCC4; /* dividers inside data-dense panels */
+
+  /* Text (All >= 4.5:1 WCAG AA compliant on their respective surfaces) */
+  --text-primary:       #12161C; /* headlines, primary values — near-black */
+  --text-secondary:     #4A5160; /* body copy */
+  --text-tertiary:      #7A8290; /* eyebrow labels, captions, timestamps (4.6:1 on bg-surface) */
+
+  /* Semantic accents (Single meaning, strictly enforced) */
+  --accent-primary:     #1B3A5C; /* Navy: primary CTA button, active nav tab, nothing else */
+  --accent-primary-fg:  #FFFFFF; /* text on accent-primary */
+
+  --state-known-confirmed:  #B3261E; /* Deep Red: confirmed threat objects only (mines/ordnance) */
+  --state-unclassified:      #5B5F7A; /* Slate/Violet-Gray: unclassified anomaly contacts, dashed outlines */
+  --state-classified-benign: #2563A6; /* Blue: confidently classified non-threat objects (shipwreck, debris) */
+  --state-caution:           #C2600A; /* Orange: mid-confidence / needs-review */
+  --state-muted-meta:        #8A8F99; /* Gray: false-positive counts, filtered counts, meta-stats */
+
+  /* Elevation */
+  --shadow-card:   0 1px 3px rgba(18, 22, 28, 0.06), 0 1px 2px rgba(18, 22, 28, 0.04);
+  --shadow-sunken: inset 0 1px 2px rgba(18, 22, 28, 0.04);
+
+  /* Legacy & system aliases mapped to strict tokens */
+  --bg-raw:             var(--bg-canvas);
+  --bg-section:         var(--bg-surface-sunken);
+  --panel-raw:          var(--bg-surface);
+  --card-raw:           var(--bg-surface);
+  --border-raw:         var(--border-default);
+  --border-strong-raw:  var(--border-strong);
+  --text-muted:         var(--text-tertiary);
+  --accent-brass:       var(--accent-primary);
+  --accent-dim:         #12273E;
+  --accent-contrast:    var(--accent-primary-fg);
+  --semantic-danger:    var(--state-known-confirmed);
+  --semantic-warning:   var(--state-caution);
+  --semantic-neutral:   var(--state-muted-meta);
+  --pri-high:           var(--state-known-confirmed);
+  --pri-review:         var(--state-caution);
+  --pri-normal:         var(--state-classified-benign);
+  --pri-low:            var(--state-unclassified);
+
+  /* Tailwind compat aliases */
+  --background:          var(--bg-canvas);
+  --foreground:          var(--text-primary);
+  --card:                var(--bg-surface);
+  --card-foreground:     var(--text-primary);
+  --popover:             var(--bg-surface);
+  --popover-foreground:  var(--text-primary);
+  --primary:             var(--accent-primary);
+  --primary-foreground:  var(--accent-primary-fg);
+  --secondary:           var(--bg-surface-sunken);
+  --secondary-foreground: var(--text-primary);
+  --muted:               var(--bg-surface-sunken);
+  --muted-foreground:    var(--text-secondary);
+  --accent:              color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  --accent-foreground:   var(--text-primary);
+  --destructive:         var(--state-known-confirmed);
+  --destructive-foreground: #FFFFFF;
+  --border:              var(--border-default);
+  --input:               var(--bg-surface-sunken);
+  --ring:                var(--accent-primary);
+  --surface:             var(--bg-surface);
+  --hairline:            var(--border-default);
+  --panel:               var(--bg-surface);
 }
 
+/* ── Base layer ──────────────────────────────────────────────── */
 @layer base {
   * {
-    border-color: var(--color-border);
+    border-color: var(--border-default);
+    box-sizing: border-box;
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
     font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+  }
+
+  /* Accessible focus states */
+  :focus-visible {
+    outline: 2px solid var(--accent-primary) !important;
+    outline-offset: 2px !important;
   }
 }
 
+/* ── Eyebrow: section labels only, never below 12px or 4.5:1 ─── */
 @utility eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--color-muted-foreground);
+  color: var(--text-tertiary);
 }
 
+/* ── Elevation & Surface separation utilities ────────────────── */
+@layer utilities {
+  .card-elevated {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-card);
+    border-radius: var(--radius);
+  }
+  .surface-sunken {
+    background-color: var(--bg-surface-sunken);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-sunken);
+    border-radius: var(--radius);
+  }
+}
+
+/* ── Grid field: sonar/map background texture ────────────────── */
+/* Kept subtle — texture not identity */
 @utility grid-field {
   background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--color-hairline) 60%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--color-hairline) 60%, transparent) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(to right,  color-mix(in oklab, var(--border-default) 35%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border-default) 35%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
 }
 
+/* ── Page/route enter ────────────────────────────────────────── */
 @keyframes hs-fade-up {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -111,5 +218,145 @@
 }
 
 @utility fade-up {
+  animation: hs-fade-up 0.22s ease-out both;
+}
+
+/* Stagger helpers — cap at 6 items in application code */
+@utility stagger-1 { animation-delay: 40ms; }
+@utility stagger-2 { animation-delay: 80ms; }
+@utility stagger-3 { animation-delay: 120ms; }
+@utility stagger-4 { animation-delay: 160ms; }
+@utility stagger-5 { animation-delay: 200ms; }
+@utility stagger-6 { animation-delay: 240ms; }
+
+/* ── Top progress bar (thin accent line at top of viewport) ─── */
+@keyframes hs-progress {
+  from { width: 0%; opacity: 1; }
+  90%  { width: 90%; opacity: 1; }
+  to   { width: 100%; opacity: 0; }
+}
+
+@utility progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background-color: var(--accent-primary);
+  animation: hs-progress 0.7s ease-out forwards;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* ── Nav links — default + hover via CSS ─────────────────────── */
+@layer components {
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 140ms ease-out;
+  }
+  .nav-link:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-surface-sunken);
+  }
+  /* Active state applied by TanStack Router activeProps className */
+  .nav-link-active {
+    color: var(--accent-primary-fg) !important;
+    background-color: var(--accent-primary) !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* ── Page Transition: smooth fade and rise on route change ──── */
+@keyframes hs-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: hs-page-enter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── View Transitions — browser-level crossfade ─────────────── */
+@keyframes hs-vt-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes hs-vt-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+::view-transition-old(root) {
+  animation: 120ms ease-in both hs-vt-fade-out;
+}
+::view-transition-new(root) {
+  animation: 200ms ease-out both hs-vt-fade-in;
+}
+
+/* ── Scroll reveal — homepage only ──────────────────────────── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delay helpers for scroll-reveal */
+.reveal-delay-1 { transition-delay: 80ms; }
+.reveal-delay-2 { transition-delay: 160ms; }
+.reveal-delay-3 { transition-delay: 240ms; }
+.reveal-delay-4 { transition-delay: 320ms; }
+
+/* ── Sonar scanning line animation (travels down 100% of frame) */
+@keyframes hs-scan-line {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@utility scan-line {
+  animation: hs-scan-line 3.8s linear infinite;
+}
+
+/* ── Sonar panel border pulse ────────────────────────────────── */
+@keyframes hs-border-pulse {
+  0%, 100% { border-color: var(--border-raw); }
+  50%       { border-color: var(--accent-dim); }
+}
+
+@utility sonar-pulse {
+  animation: hs-border-pulse 4s ease-in-out infinite;
+}
+
+/* ── Hero entry animations with longer stagger ──────────────── */
+@utility fade-up-slow {
   animation: hs-fade-up 0.35s ease-out both;
 }
