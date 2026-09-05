@@ -3,9 +3,9 @@ import { useState } from "react";
 import { MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TrackMap } from "@/components/dashboard/TrackMap";
+import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/overview")({
   head: () => ({
@@ -30,102 +30,6 @@ function formatTs(ts: number) {
     minute: "2-digit",
     hour12: false,
   });
-}
-
-function PriorityBadge({ priority, className }: { priority: string; className?: string }) {
-  switch (priority) {
-    case "high_priority":
-      return (
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold whitespace-nowrap shrink-0",
-            className
-          )}
-          style={{
-            background: "color-mix(in srgb, var(--state-known-confirmed) 12%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--state-known-confirmed) 40%, transparent)",
-            color: "var(--state-known-confirmed)",
-          }}
-        >
-          <span
-            className="h-1.5 w-1.5 rounded-full shrink-0"
-            style={{
-              background: "var(--state-known-confirmed)",
-              boxShadow: "0 0 4px var(--state-known-confirmed)",
-            }}
-          />
-          CONFIRMED THREAT
-        </span>
-      );
-    case "review_required":
-      return (
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold whitespace-nowrap shrink-0",
-            className
-          )}
-          style={{
-            background: "color-mix(in srgb, var(--state-caution) 12%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--state-caution) 40%, transparent)",
-            color: "var(--state-caution)",
-          }}
-        >
-          <span
-            className="h-1.5 w-1.5 rounded-full shrink-0"
-            style={{
-              background: "var(--state-caution)",
-              boxShadow: "0 0 4px var(--state-caution)",
-            }}
-          />
-          REVIEW REQUIRED
-        </span>
-      );
-    case "normal":
-      return (
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold whitespace-nowrap shrink-0",
-            className
-          )}
-          style={{
-            background: "color-mix(in srgb, var(--state-classified-benign) 12%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--state-classified-benign) 40%, transparent)",
-            color: "var(--state-classified-benign)",
-          }}
-        >
-          <span
-            className="h-1.5 w-1.5 rounded-full shrink-0"
-            style={{
-              background: "var(--state-classified-benign)",
-              boxShadow: "0 0 4px var(--state-classified-benign)",
-            }}
-          />
-          CLASSIFIED BENIGN
-        </span>
-      );
-    default:
-      return (
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold whitespace-nowrap shrink-0",
-            className
-          )}
-          style={{
-            background: "color-mix(in srgb, var(--state-unclassified) 12%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--state-unclassified) 40%, transparent)",
-            color: "var(--state-unclassified)",
-          }}
-        >
-          <span
-            className="h-1.5 w-1.5 rounded-full shrink-0"
-            style={{
-              background: "var(--state-unclassified)",
-            }}
-          />
-          UNCLASSIFIED
-        </span>
-      );
-  }
 }
 
 function Overview() {
@@ -160,30 +64,40 @@ function Overview() {
     <div className="flex min-h-screen flex-col gradient-mesh">
       <SiteHeader />
 
-      <main className="mx-auto max-w-[1400px] w-full px-6 pt-6 pb-6 flex-1 flex flex-col gap-4 fade-up">
+      <main className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 pt-3.5 pb-2.5 flex-1 flex flex-col gap-2.5 sm:gap-3 fade-up">
         {/* ── Page header ──────────────────────────────────── */}
-        <div className="shrink-0 pb-4" style={{ borderBottom: "1px solid var(--border-default)" }}>
-          <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="shrink-0 pb-2 sm:pb-2.5" style={{ borderBottom: "1px solid var(--border-default)" }}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="eyebrow">Survey Overview · Read-only</p>
-              <h1
-                className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Dashboard
-              </h1>
-              <p className="mt-1 text-[13px]" style={{ color: "var(--text-secondary)" }}>
-                Aggregated view of all sonar survey runs. Review missions, acoustic detections, and priority contacts.
+              <div className="flex items-center gap-2.5">
+                <h1
+                  className="text-xl sm:text-2xl font-bold tracking-tight"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  Dashboard
+                </h1>
+                <span
+                  className="hidden sm:inline font-mono text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded"
+                  style={{
+                    background: "var(--bg-surface-sunken)",
+                    border: "1px solid var(--border-default)",
+                    color: "var(--text-tertiary)",
+                  }}
+                >
+                  Survey Overview · Read-only
+                </span>
+              </div>
+              <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-secondary)" }}>
+                Aggregated telemetry and acoustic detections across past sonar survey runs.
               </p>
             </div>
             <Link
               to="/dashboard"
-              className="inline-flex h-9 items-center justify-center gap-2 px-4 font-semibold transition-opacity hover:opacity-90 cursor-pointer shrink-0"
+              className="inline-flex h-8 items-center justify-center gap-1.5 px-3.5 font-semibold transition-opacity hover:opacity-90 cursor-pointer shrink-0 text-[11px]"
               style={{
                 borderRadius: "var(--radius)",
                 background: "var(--accent-primary)",
                 color: "var(--accent-primary-fg)",
-                fontSize: 12,
               }}
             >
               + New Survey
@@ -224,7 +138,7 @@ function Overview() {
         ) : (
           <>
             {/* ── Compact metric strip (4 chips, horizontal) ─── */}
-            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {[
                 { label: "Surveys Run",       value: totalSurveys,            color: "var(--accent-primary)" },
                 { label: "Total Detections",  value: totalDetections,         color: "var(--state-classified-benign)" },
@@ -233,7 +147,7 @@ function Overview() {
               ].map((m) => (
                 <div
                   key={m.label}
-                  className="flex items-center gap-3 px-4 py-3"
+                  className="flex items-center gap-2.5 px-3 py-1.5 sm:py-2"
                   style={{
                     background: "var(--bg-surface)",
                     border: "1px solid var(--border-default)",
@@ -244,7 +158,7 @@ function Overview() {
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 28,
+                      fontSize: 22,
                       fontWeight: 700,
                       color: m.color,
                       lineHeight: 1,
@@ -256,12 +170,12 @@ function Overview() {
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontWeight: 600,
-                      letterSpacing: "0.05em",
+                      letterSpacing: "0.04em",
                       textTransform: "uppercase",
                       color: "var(--text-tertiary)",
-                      lineHeight: 1.3,
+                      lineHeight: 1.25,
                     }}
                   >
                     {m.label}
@@ -271,18 +185,18 @@ function Overview() {
             </div>
 
             {/* ── Two-pane area ───────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-2.5 sm:gap-3">
               {/* Left pane — Recent Surveys table */}
               <div className="flex flex-col">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1.5">
                   <h2
-                    className="text-[11px] font-semibold uppercase tracking-wider font-mono"
+                    className="text-[10.5px] font-semibold uppercase tracking-wider font-mono"
                     style={{ color: "var(--text-secondary)" }}
                   >
                     Recent Surveys ({surveys.length})
                   </h2>
                   <span
-                    className="font-mono text-[10px]"
+                    className="font-mono text-[9.5px]"
                     style={{ color: "var(--text-tertiary)" }}
                   >
                     Sorted by most recent
@@ -308,34 +222,32 @@ function Overview() {
                           }}
                         >
                           <th
-                            className="px-4 py-2.5 text-left font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)]"
-                            style={{ minWidth: 160 }}
+                            className="px-3 py-1.5 text-left font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Survey Name
                           </th>
                           <th
-                            className="px-3 py-2.5 text-left font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2.5 py-1.5 text-left font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Region
                           </th>
                           <th
-                            className="px-3 py-2.5 text-left font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2.5 py-1.5 text-left font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Timestamp
                           </th>
                           <th
-                            className="px-3 py-2.5 text-center font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2.5 py-1.5 text-center font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Detections
                           </th>
                           <th
-                            className="px-4 py-2.5 text-center font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-3 py-1.5 text-center font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Top Priority
                           </th>
                           <th
-                            className="px-4 py-2.5 text-right font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
-                            style={{ minWidth: 80 }}
+                            className="px-3 py-1.5 text-right font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Report
                           </th>
@@ -356,19 +268,23 @@ function Overview() {
                                 borderBottom: i < surveys.length - 1 ? "1px solid var(--border-default)" : "none",
                               }}
                             >
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-2">
-                                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <div className="flex items-center gap-2 whitespace-nowrap">
+                                  <span
+                                    className="truncate max-w-[200px] xl:max-w-none text-[12px] font-semibold"
+                                    style={{ color: "var(--text-primary)" }}
+                                    title={s.name}
+                                  >
                                     {s.name}
                                   </span>
                                   {s.isSample && (
                                     <span
-                                      className="px-1.5 py-0.5 rounded font-mono text-[9px] font-bold shrink-0"
+                                      className="px-1.5 py-0.2 rounded font-mono text-[8.5px] font-bold shrink-0 leading-tight"
                                       style={{
                                         background: "var(--bg-surface-sunken)",
                                         border: "1px solid var(--border-strong)",
                                         color: "var(--text-tertiary)",
-                                        letterSpacing: "0.05em",
+                                        letterSpacing: "0.04em",
                                       }}
                                     >
                                       DEMO
@@ -377,24 +293,24 @@ function Overview() {
                                 </div>
                               </td>
                               <td
-                                className="px-3 py-3 whitespace-nowrap"
+                                className="px-2.5 py-2 whitespace-nowrap"
                                 style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}
                               >
                                 {s.region ?? "Not specified"}
                               </td>
                               <td
-                                className="px-3 py-3 whitespace-nowrap"
+                                className="px-2.5 py-2 whitespace-nowrap"
                                 style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}
                               >
                                 {formatTs(s.timestamp)}
                               </td>
                               <td
-                                className="px-3 py-3 text-center whitespace-nowrap"
-                                style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}
+                                className="px-2.5 py-2 text-center whitespace-nowrap"
+                                style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}
                               >
                                 {s.result.summary.total_detections}
                               </td>
-                              <td className="px-4 py-3 text-center whitespace-nowrap">
+                              <td className="px-3 py-2 text-center whitespace-nowrap">
                                 {topPriority ? (
                                   <PriorityBadge priority={topPriority} />
                                 ) : (
@@ -403,11 +319,11 @@ function Overview() {
                                   </span>
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-right whitespace-nowrap">
+                              <td className="px-3 py-2 text-right whitespace-nowrap">
                                 <Link
                                   to="/metrics"
                                   search={{ id: s.id }}
-                                  className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-[11px] font-semibold px-2.5 py-1 rounded transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--accent-primary-fg)] cursor-pointer"
+                                  className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-[10.5px] font-semibold px-2 py-0.5 rounded transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--accent-primary-fg)] cursor-pointer"
                                   style={{
                                     color: "var(--accent-primary)",
                                     background: "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
@@ -415,7 +331,7 @@ function Overview() {
                                   }}
                                 >
                                   <span>Report</span>
-                                  <span className="text-[12px] leading-none" aria-hidden="true">→</span>
+                                  <span className="text-[11px] leading-none" aria-hidden="true">→</span>
                                 </Link>
                               </td>
                             </tr>
@@ -428,11 +344,11 @@ function Overview() {
               </div>
 
               {/* Right pane — Class breakdown + Priority findings */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2.5 sm:gap-3">
                 {/* Detection class breakdown */}
                 <div>
                   <h2
-                    className="mb-2 text-[11px] font-semibold uppercase tracking-wider font-mono"
+                    className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wider font-mono"
                     style={{ color: "var(--text-secondary)" }}
                   >
                     Detection Class Breakdown
@@ -452,13 +368,13 @@ function Overview() {
                     ].map(({ label, value, color }) => (
                       <div
                         key={label}
-                        className="px-3 py-3 text-center"
+                        className="px-2.5 py-1.5 sm:py-2 text-center"
                         style={{ background: "var(--bg-surface)" }}
                       >
                         <p
                           style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: 26,
+                            fontSize: 20,
                             fontWeight: 700,
                             color,
                             lineHeight: 1,
@@ -466,7 +382,7 @@ function Overview() {
                         >
                           {value}
                         </p>
-                        <p className="eyebrow mt-1 text-[10px]">{label}</p>
+                        <p className="eyebrow mt-0.5 text-[9px]">{label}</p>
                       </div>
                     ))}
                   </div>
@@ -476,16 +392,16 @@ function Overview() {
                 {priorityFindings.length > 0 && (
                   <div>
                     <h2
-                      className="mb-2 text-[11px] font-semibold uppercase tracking-wider font-mono"
+                      className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wider font-mono"
                       style={{ color: "var(--text-secondary)" }}
                     >
                       Priority Findings ({priorityFindings.length})
                     </h2>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {priorityFindings.map((d) => (
                         <div
                           key={`${d.surveyId}-${d.id}`}
-                          className="flex items-center gap-3 px-3.5 py-2.5 transition-all hover:shadow-xs"
+                          className="flex items-center gap-2.5 px-3 py-1.5 transition-all hover:shadow-xs"
                           style={{
                             background: "var(--bg-surface)",
                             border: "1px solid var(--border-default)",
@@ -495,11 +411,14 @@ function Overview() {
                           }}
                         >
                           <PriorityBadge priority={d.priority} />
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>
+                          <span
+                            className="text-[11.5px] font-semibold truncate"
+                            style={{ color: "var(--text-primary)" }}
+                          >
                             {d.class ? d.class.toUpperCase() : "UNKNOWN ANOMALY"}
                           </span>
                           <span
-                            className="font-mono text-[10px] px-1.5 py-0.5 rounded"
+                            className="font-mono text-[9.5px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0"
                             style={{
                               background: "var(--bg-surface-sunken)",
                               border: "1px solid var(--border-default)",
@@ -508,7 +427,10 @@ function Overview() {
                           >
                             {d.id}
                           </span>
-                          <span style={{ fontSize: 11, color: "var(--text-tertiary)", marginLeft: "auto", whiteSpace: "nowrap" }}>
+                          <span
+                            className="text-[10.5px] truncate whitespace-nowrap ml-auto"
+                            style={{ color: "var(--text-tertiary)" }}
+                          >
                             {d.surveyName}
                           </span>
                         </div>
@@ -521,7 +443,7 @@ function Overview() {
 
             {/* ── Collapsible Tactical Geospatial Map (Very last section) ── */}
             <div
-              className="mt-2 overflow-hidden transition-all duration-200"
+              className="mt-0.5 overflow-hidden transition-all duration-200"
               style={{
                 background: "var(--bg-surface)",
                 border: "1px solid var(--border-default)",
@@ -533,29 +455,29 @@ function Overview() {
               <button
                 type="button"
                 onClick={() => setMapExpanded(!mapExpanded)}
-                className="w-full flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--bg-surface-sunken)]/50 cursor-pointer select-none"
+                className="w-full flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-1.5 sm:py-2 text-left transition-colors hover:bg-[var(--bg-surface-sunken)]/50 cursor-pointer select-none"
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div
-                    className="flex items-center justify-center h-7 w-7 rounded shrink-0"
+                    className="flex items-center justify-center h-6 w-6 rounded shrink-0"
                     style={{
                       background: "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
                       border: "1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)",
                       color: "var(--accent-primary)",
                     }}
                   >
-                    <MapPin className="h-3.5 w-3.5" strokeWidth={2} />
+                    <MapPin className="h-3 w-3" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span
-                        className="font-mono text-[12px] font-bold tracking-tight"
+                        className="font-mono text-[11px] font-bold tracking-tight"
                         style={{ color: "var(--text-primary)" }}
                       >
                         TACTICAL GEOSPATIAL MAP
                       </span>
                       <span
-                        className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded"
+                        className="font-mono text-[8.5px] font-bold px-1.5 py-0.2 rounded"
                         style={{
                           background: "var(--bg-surface-sunken)",
                           border: "1px solid var(--border-strong)",
@@ -565,7 +487,7 @@ function Overview() {
                         WGS-84 GRID
                       </span>
                     </div>
-                    <p className="text-[11px] truncate" style={{ color: "var(--text-secondary)", marginTop: 1 }}>
+                    <p className="text-[10px] truncate" style={{ color: "var(--text-secondary)", marginTop: 0.5 }}>
                       {allDetections.length} georeferenced contacts across {surveys.length} survey sectors
                     </p>
                   </div>
@@ -573,7 +495,7 @@ function Overview() {
 
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-mono text-[11px] font-semibold px-2.5 py-1 rounded inline-flex items-center gap-1"
+                    className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded inline-flex items-center gap-1"
                     style={{
                       background: mapExpanded ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
                       color: mapExpanded ? "var(--accent-primary-fg)" : "var(--accent-primary)",
@@ -598,22 +520,22 @@ function Overview() {
               {/* Enlarged Map Body */}
               {mapExpanded && (
                 <div
-                  className="p-4 space-y-4"
+                  className="p-3.5 space-y-3"
                   style={{
                     borderTop: "1px solid var(--border-default)",
                     background: "var(--bg-surface)",
                   }}
                 >
                   {/* Filter selector strip */}
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mr-1">
+                      <span className="font-mono text-[9.5px] text-[var(--text-tertiary)] uppercase tracking-wider mr-1">
                         Sector Filter:
                       </span>
                       <button
                         type="button"
                         onClick={() => setSelectedSurveyFilter("all")}
-                        className="px-2.5 py-1 rounded font-mono text-[11px] font-semibold transition-colors cursor-pointer"
+                        className="px-2.5 py-0.5 rounded font-mono text-[10px] font-semibold transition-colors cursor-pointer"
                         style={{
                           background: selectedSurveyFilter === "all" ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
                           color: selectedSurveyFilter === "all" ? "var(--accent-primary-fg)" : "var(--text-secondary)",
@@ -630,7 +552,7 @@ function Overview() {
                             key={s.id}
                             type="button"
                             onClick={() => setSelectedSurveyFilter(s.id)}
-                            className="px-2.5 py-1 rounded font-mono text-[11px] font-semibold transition-colors cursor-pointer"
+                            className="px-2.5 py-0.5 rounded font-mono text-[10px] font-semibold transition-colors cursor-pointer"
                             style={{
                               background: active ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
                               color: active ? "var(--accent-primary-fg)" : "var(--text-secondary)",
@@ -644,18 +566,18 @@ function Overview() {
                     </div>
 
                     {selectedContact && (
-                      <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--bg-surface-sunken)] border border-[var(--border-default)]">
-                        <span className="font-mono text-[10px] text-[var(--text-tertiary)]">SELECTED:</span>
-                        <span className="font-mono text-[11px] font-bold text-[var(--text-primary)]">
+                      <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-[var(--bg-surface-sunken)] border border-[var(--border-default)]">
+                        <span className="font-mono text-[9.5px] text-[var(--text-tertiary)]">SELECTED:</span>
+                        <span className="font-mono text-[10.5px] font-bold text-[var(--text-primary)]">
                           {selectedContact.id}
                         </span>
-                        <span className="text-[11px] text-[var(--text-secondary)]">
+                        <span className="text-[10.5px] text-[var(--text-secondary)]">
                           ({selectedContact.class ?? "Anomaly"})
                         </span>
                         <Link
                           to="/metrics"
                           search={{ id: selectedContact.surveyId }}
-                          className="font-mono text-[10px] text-[var(--accent-primary)] underline hover:opacity-80 ml-1"
+                          className="font-mono text-[9.5px] text-[var(--accent-primary)] underline hover:opacity-80 ml-1"
                         >
                           View Report →
                         </Link>
@@ -680,8 +602,8 @@ function Overview() {
 
       <footer className="shrink-0" style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
         <div
-          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 py-3"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
+          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-1.5 sm:py-2"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Survey Dashboard</span>
           <span>Ministry of Earth Sciences · SIH Project</span>

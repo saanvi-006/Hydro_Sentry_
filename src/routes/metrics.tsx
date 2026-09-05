@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SonarCanvas } from "@/components/dashboard/SonarCanvas";
+import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
 
@@ -23,7 +24,8 @@ export const Route = createFileRoute("/metrics")({
 });
 
 function formatTs(ts: number) {
-  return new Date(ts).toLocaleString("en-IN", {
+  const d = new Date(ts);
+  return d.toLocaleString("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -33,23 +35,6 @@ function formatTs(ts: number) {
   });
 }
 
-function priorityLabel(p: string) {
-  switch (p) {
-    case "high_priority":   return "CONFIRMED THREAT";
-    case "review_required": return "REVIEW REQUIRED";
-    case "normal":          return "CLASSIFIED BENIGN";
-    default:                return "UNCLASSIFIED";
-  }
-}
-
-function priorityColor(p: string) {
-  switch (p) {
-    case "high_priority":   return "var(--state-known-confirmed)";
-    case "review_required": return "var(--state-caution)";
-    case "normal":          return "var(--state-classified-benign)";
-    default:                return "var(--state-unclassified)";
-  }
-}
 
 function exportJson(survey: SurveyRecord) {
   const blob = new Blob([JSON.stringify(survey, null, 2)], { type: "application/json" });
@@ -126,12 +111,11 @@ function Reports() {
 
   return (
     /* Guardrail: data-dense console — gradient-mesh on shell only, do NOT add grid-field dot texture here */
-    <div className="flex min-h-screen lg:h-screen lg:overflow-hidden flex-col gradient-mesh">
+    <div className="flex min-h-screen flex-col gradient-mesh">
       <SiteHeader />
 
-      {/* flex-1 + flex-col enables inner panes to use flex-1 / overflow-y-auto within 100vh on laptop */}
       <main
-        className="mx-auto max-w-[1400px] w-full px-6 pt-6 pb-3 flex-1 flex flex-col gap-4 fade-up min-h-0"
+        className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 pt-4 pb-4 flex-1 flex flex-col gap-3.5 fade-up min-h-0"
       >
         {/* ── Page header ──────────────────────────────── */}
         <div className="shrink-0 pb-4" style={{ borderBottom: "1px solid var(--border-default)" }}>
@@ -199,7 +183,7 @@ function Reports() {
         </div>
 
         {/* ── Compact stat strip ───────────────────────── */}
-        <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
             { label: "Total Detections", value: result.summary.total_detections,       color: "var(--text-primary)" },
             { label: "Known Contacts",   value: result.summary.known_count,             color: "var(--state-classified-benign)" },
@@ -208,7 +192,7 @@ function Reports() {
           ].map((m) => (
             <div
               key={m.label}
-              className="flex items-center gap-3 px-4 py-3"
+              className="flex items-center gap-2.5 px-3.5 py-2"
               style={{
                 background: "var(--bg-surface)",
                 border: "1px solid var(--border-default)",
@@ -219,7 +203,7 @@ function Reports() {
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 28,
+                  fontSize: 22,
                   fontWeight: 700,
                   color: m.color,
                   lineHeight: 1,
@@ -231,12 +215,12 @@ function Reports() {
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10,
+                  fontSize: 9.5,
                   fontWeight: 600,
-                  letterSpacing: "0.05em",
+                  letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   color: "var(--text-tertiary)",
-                  lineHeight: 1.3,
+                  lineHeight: 1.25,
                 }}
               >
                 {m.label}
@@ -316,13 +300,8 @@ function Reports() {
                             {d.class ?? "—"}
                           </span>
                         </td>
-                        <td className="px-3 py-2.5">
-                          <span
-                            className="px-2 py-0.5 rounded font-mono text-[9px] font-bold text-white"
-                            style={{ background: priorityColor(d.priority) }}
-                          >
-                            {priorityLabel(d.priority)}
-                          </span>
+                        <td className="px-3 py-2 text-center whitespace-nowrap">
+                          <PriorityBadge priority={d.priority} />
                         </td>
                         <td className="px-3 py-2.5">
                           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
