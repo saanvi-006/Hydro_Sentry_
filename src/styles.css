@@ -84,6 +84,7 @@
   --text-tertiary:      #7A8290; /* eyebrow labels, captions, timestamps (4.6:1 on bg-surface) */
 
   /* Semantic accents (Single meaning, strictly enforced) */
+  --brand-gold:         #C9A15A; /* Permanent brand gold for logo in both light & dark themes */
   --accent-primary:     #1B3A5C; /* Navy: primary CTA button, active nav tab, nothing else */
   --accent-primary-fg:  #FFFFFF; /* text on accent-primary */
 
@@ -163,6 +164,7 @@
   --text-tertiary:      #6E7A90;
 
   /* ── Brand accent (decorative/navigation only — never on detection data) ── */
+  --brand-gold:         #C9A15A;  /* Permanent brand gold for logo in both light & dark themes */
   --accent-primary:     #C9A15A;  /* muted brass */
   --accent-primary-fg:  #14110A;
 

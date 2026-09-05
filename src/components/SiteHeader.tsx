@@ -54,7 +54,7 @@ export function SiteHeader() {
           className="flex items-center gap-2.5 transition-opacity hover:opacity-85 cursor-pointer"
           style={{ color: "var(--text-primary)" }}
         >
-          <span style={{ color: "var(--accent-primary)" }}>
+          <span style={{ color: "var(--brand-gold, #C9A15A)" }} aria-hidden="true">
             <SonarIcon />
           </span>
           <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em" }}>
