@@ -25,7 +25,6 @@ function formatTs(ts: number) {
   return d.toLocaleString("en-IN", {
     day: "2-digit",
     month: "short",
-    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -64,20 +63,20 @@ function Overview() {
     <div className="flex min-h-screen flex-col gradient-mesh">
       <SiteHeader />
 
-      <main className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 pt-3.5 pb-2.5 flex-1 flex flex-col gap-2.5 sm:gap-3 fade-up">
+      <main className="mx-auto max-w-[1400px] w-full px-3 sm:px-5 pt-2 pb-1 flex-1 flex flex-col gap-1.5 sm:gap-2 fade-up">
         {/* ── Page header ──────────────────────────────────── */}
-        <div className="shrink-0 pb-2 sm:pb-2.5" style={{ borderBottom: "1px solid var(--border-default)" }}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="shrink-0 pb-1.5" style={{ borderBottom: "1px solid var(--border-default)" }}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <h1
-                  className="text-xl sm:text-2xl font-bold tracking-tight"
+                  className="text-lg sm:text-xl font-bold tracking-tight"
                   style={{ color: "var(--text-primary)" }}
                 >
                   Dashboard
                 </h1>
                 <span
-                  className="hidden sm:inline font-mono text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded"
+                  className="hidden sm:inline font-mono text-[9px] font-medium tracking-wider uppercase px-1.5 py-0.5 rounded"
                   style={{
                     background: "var(--bg-surface-sunken)",
                     border: "1px solid var(--border-default)",
@@ -87,13 +86,13 @@ function Overview() {
                   Survey Overview · Read-only
                 </span>
               </div>
-              <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-secondary)" }}>
+              <p className="mt-0.5 text-[11px]" style={{ color: "var(--text-secondary)" }}>
                 Aggregated telemetry and acoustic detections across past sonar survey runs.
               </p>
             </div>
             <Link
               to="/dashboard"
-              className="inline-flex h-8 items-center justify-center gap-1.5 px-3.5 font-semibold transition-opacity hover:opacity-90 cursor-pointer shrink-0 text-[11px]"
+              className="inline-flex h-7 items-center justify-center gap-1 px-2.5 font-semibold transition-opacity hover:opacity-90 cursor-pointer shrink-0 text-[10.5px]"
               style={{
                 borderRadius: "var(--radius)",
                 background: "var(--accent-primary)",
@@ -108,27 +107,27 @@ function Overview() {
         {surveys.length === 0 ? (
           /* ── Empty state ─────────────────────────────────── */
           <div
-            className="flex flex-col items-center justify-center gap-3 p-10 text-center rounded"
+            className="flex flex-col items-center justify-center gap-3 p-8 text-center rounded"
             style={{
               background: "var(--bg-surface)",
               border: "1px dashed var(--border-strong)",
               borderRadius: "var(--radius)",
             }}
           >
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
               No surveys yet.
             </p>
-            <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+            <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
               Go to Surveys to run your first analysis.
             </p>
             <Link
               to="/dashboard"
-              className="mt-2 inline-flex h-10 items-center justify-center gap-2 px-5 transition-opacity hover:opacity-90"
+              className="mt-2 inline-flex h-8 items-center justify-center gap-1.5 px-4 transition-opacity hover:opacity-90"
               style={{
                 borderRadius: "var(--radius)",
                 background: "var(--accent-primary)",
                 color: "var(--accent-primary-fg)",
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 600,
               }}
             >
@@ -138,7 +137,7 @@ function Overview() {
         ) : (
           <>
             {/* ── Compact metric strip (4 chips, horizontal) ─── */}
-            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
               {[
                 { label: "Surveys Run",       value: totalSurveys,            color: "var(--accent-primary)" },
                 { label: "Total Detections",  value: totalDetections,         color: "var(--state-classified-benign)" },
@@ -147,7 +146,7 @@ function Overview() {
               ].map((m) => (
                 <div
                   key={m.label}
-                  className="flex items-center gap-2.5 px-3 py-1.5 sm:py-2"
+                  className="flex items-center gap-2 px-2.5 py-1"
                   style={{
                     background: "var(--bg-surface)",
                     border: "1px solid var(--border-default)",
@@ -158,7 +157,7 @@ function Overview() {
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: 700,
                       color: m.color,
                       lineHeight: 1,
@@ -170,12 +169,12 @@ function Overview() {
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
+                      fontSize: 9,
                       fontWeight: 600,
-                      letterSpacing: "0.04em",
+                      letterSpacing: "0.03em",
                       textTransform: "uppercase",
                       color: "var(--text-tertiary)",
-                      lineHeight: 1.25,
+                      lineHeight: 1.2,
                     }}
                   >
                     {m.label}
@@ -185,18 +184,18 @@ function Overview() {
             </div>
 
             {/* ── Two-pane area ───────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] gap-2 min-h-0">
               {/* Left pane — Recent Surveys table */}
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between mb-1.5">
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center justify-between mb-1">
                   <h2
-                    className="text-[10.5px] font-semibold uppercase tracking-wider font-mono"
+                    className="text-[10px] font-semibold uppercase tracking-wider font-mono"
                     style={{ color: "var(--text-secondary)" }}
                   >
                     Recent Surveys ({surveys.length})
                   </h2>
                   <span
-                    className="font-mono text-[9.5px]"
+                    className="font-mono text-[9px]"
                     style={{ color: "var(--text-tertiary)" }}
                   >
                     Sorted by most recent
@@ -222,32 +221,32 @@ function Overview() {
                           }}
                         >
                           <th
-                            className="px-3 py-1.5 text-left font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2.5 py-1 text-left font-mono text-[9px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Survey Name
                           </th>
                           <th
-                            className="px-2.5 py-1.5 text-left font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2 py-1 text-left font-mono text-[9px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Region
                           </th>
                           <th
-                            className="px-2.5 py-1.5 text-left font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2 py-1 text-left font-mono text-[9px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Timestamp
                           </th>
                           <th
-                            className="px-2.5 py-1.5 text-center font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2 py-1 text-center font-mono text-[9px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Detections
                           </th>
                           <th
-                            className="px-3 py-1.5 text-center font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2 py-1 text-center font-mono text-[9px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Top Priority
                           </th>
                           <th
-                            className="px-3 py-1.5 text-right font-mono text-[9.5px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                            className="px-2.5 py-1 text-right font-mono text-[9px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
                           >
                             Report
                           </th>
@@ -268,10 +267,10 @@ function Overview() {
                                 borderBottom: i < surveys.length - 1 ? "1px solid var(--border-default)" : "none",
                               }}
                             >
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="flex items-center gap-2 whitespace-nowrap">
+                              <td className="px-2.5 py-1.5 whitespace-nowrap">
+                                <div className="flex items-center gap-1.5 whitespace-nowrap">
                                   <span
-                                    className="truncate max-w-[200px] xl:max-w-none text-[12px] font-semibold"
+                                    className="truncate max-w-[135px] xl:max-w-none text-[11.5px] font-semibold"
                                     style={{ color: "var(--text-primary)" }}
                                     title={s.name}
                                   >
@@ -279,7 +278,7 @@ function Overview() {
                                   </span>
                                   {s.isSample && (
                                     <span
-                                      className="px-1.5 py-0.2 rounded font-mono text-[8.5px] font-bold shrink-0 leading-tight"
+                                      className="px-1 py-0.2 rounded font-mono text-[8px] font-bold shrink-0 leading-tight"
                                       style={{
                                         background: "var(--bg-surface-sunken)",
                                         border: "1px solid var(--border-strong)",
@@ -293,37 +292,38 @@ function Overview() {
                                 </div>
                               </td>
                               <td
-                                className="px-2.5 py-2 whitespace-nowrap"
-                                style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}
+                                className="px-2 py-1.5 whitespace-nowrap truncate max-w-[95px]"
+                                style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-secondary)" }}
+                                title={s.region ?? "Not specified"}
                               >
                                 {s.region ?? "Not specified"}
                               </td>
                               <td
-                                className="px-2.5 py-2 whitespace-nowrap"
-                                style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}
+                                className="px-2 py-1.5 whitespace-nowrap"
+                                style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-secondary)" }}
                               >
                                 {formatTs(s.timestamp)}
                               </td>
                               <td
-                                className="px-2.5 py-2 text-center whitespace-nowrap"
-                                style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}
+                                className="px-2 py-1.5 text-center whitespace-nowrap"
+                                style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}
                               >
                                 {s.result.summary.total_detections}
                               </td>
-                              <td className="px-3 py-2 text-center whitespace-nowrap">
+                              <td className="px-2 py-1.5 text-center whitespace-nowrap">
                                 {topPriority ? (
                                   <PriorityBadge priority={topPriority} />
                                 ) : (
-                                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}>
+                                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-tertiary)" }}>
                                     —
                                   </span>
                                 )}
                               </td>
-                              <td className="px-3 py-2 text-right whitespace-nowrap">
+                              <td className="px-2.5 py-1.5 text-right whitespace-nowrap">
                                 <Link
                                   to="/metrics"
                                   search={{ id: s.id }}
-                                  className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-[10.5px] font-semibold px-2 py-0.5 rounded transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--accent-primary-fg)] cursor-pointer"
+                                  className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-[10px] font-semibold px-2 py-0.5 rounded transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--accent-primary-fg)] cursor-pointer"
                                   style={{
                                     color: "var(--accent-primary)",
                                     background: "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
@@ -331,7 +331,7 @@ function Overview() {
                                   }}
                                 >
                                   <span>Report</span>
-                                  <span className="text-[11px] leading-none" aria-hidden="true">→</span>
+                                  <span className="text-[10px] leading-none" aria-hidden="true">→</span>
                                 </Link>
                               </td>
                             </tr>
@@ -344,11 +344,11 @@ function Overview() {
               </div>
 
               {/* Right pane — Class breakdown + Priority findings */}
-              <div className="flex flex-col gap-2.5 sm:gap-3">
+              <div className="flex flex-col gap-2 min-w-0">
                 {/* Detection class breakdown */}
                 <div>
                   <h2
-                    className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wider font-mono"
+                    className="mb-1 text-[10px] font-semibold uppercase tracking-wider font-mono"
                     style={{ color: "var(--text-secondary)" }}
                   >
                     Detection Class Breakdown
@@ -368,13 +368,13 @@ function Overview() {
                     ].map(({ label, value, color }) => (
                       <div
                         key={label}
-                        className="px-2.5 py-1.5 sm:py-2 text-center"
+                        className="px-2 py-1 text-center"
                         style={{ background: "var(--bg-surface)" }}
                       >
                         <p
                           style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: 20,
+                            fontSize: 17,
                             fontWeight: 700,
                             color,
                             lineHeight: 1,
@@ -382,7 +382,7 @@ function Overview() {
                         >
                           {value}
                         </p>
-                        <p className="eyebrow mt-0.5 text-[9px]">{label}</p>
+                        <p className="eyebrow mt-0.5 text-[8.5px]">{label}</p>
                       </div>
                     ))}
                   </div>
@@ -392,16 +392,16 @@ function Overview() {
                 {priorityFindings.length > 0 && (
                   <div>
                     <h2
-                      className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wider font-mono"
+                      className="mb-1 text-[10px] font-semibold uppercase tracking-wider font-mono"
                       style={{ color: "var(--text-secondary)" }}
                     >
                       Priority Findings ({priorityFindings.length})
                     </h2>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       {priorityFindings.map((d) => (
                         <div
                           key={`${d.surveyId}-${d.id}`}
-                          className="flex items-center gap-2.5 px-3 py-1.5 transition-all hover:shadow-xs"
+                          className="flex items-center gap-2 px-2.5 py-1 transition-all hover:shadow-xs min-w-0"
                           style={{
                             background: "var(--bg-surface)",
                             border: "1px solid var(--border-default)",
@@ -412,13 +412,13 @@ function Overview() {
                         >
                           <PriorityBadge priority={d.priority} />
                           <span
-                            className="text-[11.5px] font-semibold truncate"
+                            className="text-[11px] font-semibold truncate min-w-0"
                             style={{ color: "var(--text-primary)" }}
                           >
                             {d.class ? d.class.toUpperCase() : "UNKNOWN ANOMALY"}
                           </span>
                           <span
-                            className="font-mono text-[9.5px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0"
+                            className="font-mono text-[9px] px-1 py-0.2 rounded whitespace-nowrap shrink-0"
                             style={{
                               background: "var(--bg-surface-sunken)",
                               border: "1px solid var(--border-default)",
@@ -428,7 +428,7 @@ function Overview() {
                             {d.id}
                           </span>
                           <span
-                            className="text-[10.5px] truncate whitespace-nowrap ml-auto"
+                            className="text-[9.5px] truncate whitespace-nowrap ml-auto max-w-[100px] text-right"
                             style={{ color: "var(--text-tertiary)" }}
                           >
                             {d.surveyName}
@@ -455,11 +455,11 @@ function Overview() {
               <button
                 type="button"
                 onClick={() => setMapExpanded(!mapExpanded)}
-                className="w-full flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-1.5 sm:py-2 text-left transition-colors hover:bg-[var(--bg-surface-sunken)]/50 cursor-pointer select-none"
+                className="w-full flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 text-left transition-colors hover:bg-[var(--bg-surface-sunken)]/50 cursor-pointer select-none"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
                   <div
-                    className="flex items-center justify-center h-6 w-6 rounded shrink-0"
+                    className="flex items-center justify-center h-5 w-5 rounded shrink-0"
                     style={{
                       background: "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
                       border: "1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)",
@@ -469,15 +469,15 @@ function Overview() {
                     <MapPin className="h-3 w-3" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <span
-                        className="font-mono text-[11px] font-bold tracking-tight"
+                        className="font-mono text-[10.5px] font-bold tracking-tight"
                         style={{ color: "var(--text-primary)" }}
                       >
                         TACTICAL GEOSPATIAL MAP
                       </span>
                       <span
-                        className="font-mono text-[8.5px] font-bold px-1.5 py-0.2 rounded"
+                        className="font-mono text-[8px] font-bold px-1 py-0.2 rounded"
                         style={{
                           background: "var(--bg-surface-sunken)",
                           border: "1px solid var(--border-strong)",
@@ -487,7 +487,7 @@ function Overview() {
                         WGS-84 GRID
                       </span>
                     </div>
-                    <p className="text-[10px] truncate" style={{ color: "var(--text-secondary)", marginTop: 0.5 }}>
+                    <p className="text-[9.5px] truncate" style={{ color: "var(--text-secondary)", marginTop: 0 }}>
                       {allDetections.length} georeferenced contacts across {surveys.length} survey sectors
                     </p>
                   </div>
@@ -495,7 +495,7 @@ function Overview() {
 
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded inline-flex items-center gap-1"
+                    className="font-mono text-[9.5px] font-semibold px-2 py-0.5 rounded inline-flex items-center gap-1"
                     style={{
                       background: mapExpanded ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
                       color: mapExpanded ? "var(--accent-primary-fg)" : "var(--accent-primary)",
@@ -505,12 +505,12 @@ function Overview() {
                     {mapExpanded ? (
                       <>
                         <span>Collapse Map</span>
-                        <ChevronUp className="h-3 w-3" strokeWidth={2} />
+                        <ChevronUp className="h-2.5 w-2.5" strokeWidth={2} />
                       </>
                     ) : (
                       <>
                         <span>Expand Map</span>
-                        <ChevronDown className="h-3 w-3" strokeWidth={2} />
+                        <ChevronDown className="h-2.5 w-2.5" strokeWidth={2} />
                       </>
                     )}
                   </span>
@@ -520,22 +520,22 @@ function Overview() {
               {/* Enlarged Map Body */}
               {mapExpanded && (
                 <div
-                  className="p-3.5 space-y-3"
+                  className="p-3 space-y-2.5"
                   style={{
                     borderTop: "1px solid var(--border-default)",
                     background: "var(--bg-surface)",
                   }}
                 >
                   {/* Filter selector strip */}
-                  <div className="flex flex-wrap items-center justify-between gap-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="font-mono text-[9.5px] text-[var(--text-tertiary)] uppercase tracking-wider mr-1">
+                      <span className="font-mono text-[9px] text-[var(--text-tertiary)] uppercase tracking-wider mr-1">
                         Sector Filter:
                       </span>
                       <button
                         type="button"
                         onClick={() => setSelectedSurveyFilter("all")}
-                        className="px-2.5 py-0.5 rounded font-mono text-[10px] font-semibold transition-colors cursor-pointer"
+                        className="px-2 py-0.5 rounded font-mono text-[9.5px] font-semibold transition-colors cursor-pointer"
                         style={{
                           background: selectedSurveyFilter === "all" ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
                           color: selectedSurveyFilter === "all" ? "var(--accent-primary-fg)" : "var(--text-secondary)",
@@ -552,7 +552,7 @@ function Overview() {
                             key={s.id}
                             type="button"
                             onClick={() => setSelectedSurveyFilter(s.id)}
-                            className="px-2.5 py-0.5 rounded font-mono text-[10px] font-semibold transition-colors cursor-pointer"
+                            className="px-2 py-0.5 rounded font-mono text-[9.5px] font-semibold transition-colors cursor-pointer"
                             style={{
                               background: active ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
                               color: active ? "var(--accent-primary-fg)" : "var(--text-secondary)",
@@ -567,17 +567,17 @@ function Overview() {
 
                     {selectedContact && (
                       <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-[var(--bg-surface-sunken)] border border-[var(--border-default)]">
-                        <span className="font-mono text-[9.5px] text-[var(--text-tertiary)]">SELECTED:</span>
-                        <span className="font-mono text-[10.5px] font-bold text-[var(--text-primary)]">
+                        <span className="font-mono text-[9px] text-[var(--text-tertiary)]">SELECTED:</span>
+                        <span className="font-mono text-[10px] font-bold text-[var(--text-primary)]">
                           {selectedContact.id}
                         </span>
-                        <span className="text-[10.5px] text-[var(--text-secondary)]">
+                        <span className="text-[10px] text-[var(--text-secondary)]">
                           ({selectedContact.class ?? "Anomaly"})
                         </span>
                         <Link
                           to="/metrics"
                           search={{ id: selectedContact.surveyId }}
-                          className="font-mono text-[9.5px] text-[var(--accent-primary)] underline hover:opacity-80 ml-1"
+                          className="font-mono text-[9px] text-[var(--accent-primary)] underline hover:opacity-80 ml-1"
                         >
                           View Report →
                         </Link>
@@ -590,7 +590,7 @@ function Overview() {
                     detections={filteredMapDetections}
                     selectedId={selectedContactId}
                     onSelect={setSelectedContactId}
-                    height={280}
+                    height={260}
                     showContactList={true}
                   />
                 </div>
@@ -600,10 +600,10 @@ function Overview() {
         )}
       </main>
 
-      <footer className="shrink-0" style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
+      <footer className="shrink-0 mt-auto" style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
         <div
-          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-1.5 sm:py-2"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-tertiary)" }}
+          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-1"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Survey Dashboard</span>
           <span>Ministry of Earth Sciences · SIH Project</span>

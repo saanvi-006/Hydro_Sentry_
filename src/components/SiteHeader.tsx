@@ -47,7 +47,7 @@ export function SiteHeader() {
         borderBottom: "1px solid var(--border-default)",
       }}
     >
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-6">
+      <div className="mx-auto flex h-11 sm:h-12 max-w-[1400px] items-center justify-between px-4 sm:px-6">
         {/* Wordmark */}
         <Link
           to="/"
