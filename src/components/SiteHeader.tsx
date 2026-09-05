@@ -12,9 +12,10 @@ function SonarIcon() {
 }
 
 const navLinks = [
-  { to: "/",          label: "Home",        exact: true  },
-  { to: "/dashboard", label: "Analysis",    exact: false },
-  { to: "/metrics",   label: "Performance", exact: false },
+  { to: "/",          label: "Home",      exact: true  },
+  { to: "/overview",  label: "Dashboard", exact: false },
+  { to: "/dashboard", label: "Surveys",   exact: false },
+  { to: "/metrics",   label: "Reports",   exact: false },
 ] as const;
 
 export function SiteHeader() {

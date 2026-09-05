@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as MetricsRouteImport } from './routes/metrics'
+import { Route as OverviewRouteImport } from './routes/overview'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const MetricsRoute = MetricsRouteImport.update({
   path: '/metrics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OverviewRoute = OverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/metrics': typeof MetricsRoute
+  '/overview': typeof OverviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/metrics': typeof MetricsRoute
+  '/overview': typeof OverviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/metrics': typeof MetricsRoute
+  '/overview': typeof OverviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/metrics'
+  fullPaths: '/' | '/dashboard' | '/metrics' | '/overview'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/metrics'
-  id: '__root__' | '/' | '/dashboard' | '/metrics'
+  to: '/' | '/dashboard' | '/metrics' | '/overview'
+  id: '__root__' | '/' | '/dashboard' | '/metrics' | '/overview'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   MetricsRoute: typeof MetricsRoute
+  OverviewRoute: typeof OverviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MetricsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/overview': {
+      id: '/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof OverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   MetricsRoute: MetricsRoute,
+  OverviewRoute: OverviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
