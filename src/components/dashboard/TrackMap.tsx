@@ -5,10 +5,14 @@ export function TrackMap({
   detections,
   selectedId,
   onSelect,
+  height = 220,
+  showContactList = true,
 }: {
   detections: Detection[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  height?: number;
+  showContactList?: boolean;
 }) {
   const pts = detections.filter((d) => d.location);
 
@@ -74,7 +78,7 @@ export function TrackMap({
       <div
         className="surface-sunken relative overflow-hidden"
         style={{
-          height: 220,
+          height,
           border: "1px solid var(--border-default)",
           borderRadius: "var(--radius)",
           background: "var(--bg-surface-sunken)",
@@ -213,39 +217,41 @@ export function TrackMap({
       </div>
 
       {/* Contact listing below map */}
-      <div className="space-y-1.5">
-        {pts.map((d) => {
-          const sem = getContactSemantic(d);
-          const isSelected = selectedId === d.id;
-          return (
-            <div
-              key={d.id}
-              onClick={() => onSelect(d.id)}
-              className="flex items-center justify-between px-3 py-1.5 rounded cursor-pointer transition-colors"
-              style={{
-                background: isSelected ? "var(--bg-surface-sunken)" : "var(--bg-surface)",
-                border: `1px solid ${isSelected ? sem.color : "var(--border-default)"}`,
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className="h-2 w-2 rotate-45 shrink-0"
-                  style={{ backgroundColor: sem.color }}
-                />
-                <span className="font-mono text-[11px] font-semibold" style={{ color: sem.color }}>
-                  {d.id}
-                </span>
-                <span className="font-sans text-[11px] text-[var(--text-secondary)]">
-                  {sem.shortLabel}
+      {showContactList && (
+        <div className="space-y-1.5">
+          {pts.map((d) => {
+            const sem = getContactSemantic(d);
+            const isSelected = selectedId === d.id;
+            return (
+              <div
+                key={d.id}
+                onClick={() => onSelect(d.id)}
+                className="flex items-center justify-between px-3 py-1.5 rounded cursor-pointer transition-colors"
+                style={{
+                  background: isSelected ? "var(--bg-surface-sunken)" : "var(--bg-surface)",
+                  border: `1px solid ${isSelected ? sem.color : "var(--border-default)"}`,
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-2 w-2 rotate-45 shrink-0"
+                    style={{ backgroundColor: sem.color }}
+                  />
+                  <span className="font-mono text-[11px] font-semibold" style={{ color: sem.color }}>
+                    {d.id}
+                  </span>
+                  <span className="font-sans text-[11px] text-[var(--text-secondary)]">
+                    {sem.shortLabel}
+                  </span>
+                </div>
+                <span className="font-mono text-[10px] text-[var(--text-tertiary)]">
+                  {d.location!.lat.toFixed(4)}°N / {d.location!.lon.toFixed(4)}°E
                 </span>
               </div>
-              <span className="font-mono text-[10px] text-[var(--text-tertiary)]">
-                {d.location!.lat.toFixed(4)}°N / {d.location!.lon.toFixed(4)}°E
-              </span>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

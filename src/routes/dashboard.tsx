@@ -39,7 +39,7 @@ function Panel({
 }) {
   return (
     <section
-      className={cn("flex flex-col card-elevated", className)}
+      className={cn("flex flex-col card-elevated min-h-0", className)}
       style={{
         background: "var(--bg-surface)",
         border: "1px solid var(--border-default)",
@@ -48,12 +48,12 @@ function Panel({
       }}
     >
       <div
-        className="shrink-0 px-4 py-3"
+        className="shrink-0 px-4 py-2.5"
         style={{ borderBottom: "1px solid var(--border-default)", background: "var(--bg-surface)" }}
       >
         <p className="eyebrow">{title}</p>
       </div>
-      <div className="flex-1 p-4">{children}</div>
+      <div className="flex-1 p-3.5 overflow-y-auto min-h-0">{children}</div>
     </section>
   );
 }
@@ -79,94 +79,72 @@ function Gateway({
   }
 
   return (
-    <div className="mx-auto max-w-[960px] w-full px-6 py-12 fade-up">
+    <div className="mx-auto max-w-[1400px] w-full px-6 pt-6 pb-6 flex-1 flex flex-col fade-up min-h-0">
       {/* Header */}
-      <div className="pb-6" style={{ borderBottom: "1px solid var(--border-default)" }}>
+      <div className="pb-4 shrink-0" style={{ borderBottom: "1px solid var(--border-default)" }}>
         <p className="eyebrow">Survey Gateway</p>
         <h1
-          className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight"
+          className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
           style={{ color: "var(--text-primary)" }}
         >
           Sonar Survey Workspace
         </h1>
-        <p className="mt-2 text-[14px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-          Start a new acoustic survey analysis or continue from a previous run.
+        <p className="mt-1 text-[13px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+          Start a new acoustic survey analysis or continue from a previous mission run.
         </p>
       </div>
 
-      {/* Action buttons */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <button
-          type="button"
-          onClick={onNew}
-          className="flex flex-col items-start gap-2 p-6 text-left transition-all hover:shadow-md cursor-pointer"
-          style={{
-            background: "var(--bg-surface)",
-            border: "2px solid var(--accent-primary)",
-            borderRadius: "var(--radius)",
-            boxShadow: "var(--shadow-card)",
-          }}
-        >
-          <span
-            className="font-mono text-[11px] font-bold px-2 py-0.5 rounded text-white"
-            style={{ background: "var(--accent-primary)" }}
-          >
-            + NEW SURVEY
-          </span>
-          <p
-            style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginTop: 4 }}
-          >
-            Start New Analysis
-          </p>
-          <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-            Upload a side-scan sonar frame (.png, .jpg, .tif) and configure detection parameters.
-          </p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => surveys.length > 0 && onOpen(surveys[0]!)}
-          disabled={surveys.length === 0}
-          className="flex flex-col items-start gap-2 p-6 text-left transition-all hover:shadow-md cursor-pointer disabled:opacity-50"
-          style={{
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border-default)",
-            borderRadius: "var(--radius)",
-            boxShadow: "var(--shadow-card)",
-          }}
-        >
-          <span
-            className="font-mono text-[11px] font-bold px-2 py-0.5 rounded"
-            style={{
-              background: "var(--bg-surface-sunken)",
-              border: "1px solid var(--border-strong)",
-              color: "var(--text-secondary)",
-            }}
-          >
-            OPEN EXISTING
-          </span>
-          <p style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginTop: 4 }}>
-            Open Last Survey
-          </p>
-          <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-            {surveys.length > 0
-              ? `Resume: ${surveys[0]!.name}`
-              : "No surveys run yet."}
-          </p>
-        </button>
-      </div>
-
-      {/* Recent surveys */}
-      {surveys.length > 0 && (
-        <div className="mt-10">
+      {/* Main Gateway Content: 2-column on lg screens */}
+      <div className="mt-5 grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] gap-6 flex-1 min-h-0">
+        {/* Left Column: Action Launchpad */}
+        <div className="flex flex-col gap-4">
           <h2
-            className="mb-3 text-[13px] font-semibold uppercase tracking-wider font-mono"
+            className="text-[11px] font-semibold uppercase tracking-wider font-mono"
             style={{ color: "var(--text-secondary)" }}
           >
-            Recent Surveys
+            Launch Actions
           </h2>
-          <div
-            className="overflow-hidden"
+
+          <button
+            type="button"
+            onClick={onNew}
+            className="flex flex-col items-start gap-2 p-5 text-left transition-all hover:shadow-md cursor-pointer group"
+            style={{
+              background: "var(--bg-surface)",
+              border: "2px solid var(--accent-primary)",
+              borderRadius: "var(--radius)",
+              boxShadow: "var(--shadow-card)",
+            }}
+          >
+            <div className="flex items-center justify-between w-full">
+              <span
+                className="font-mono text-[10px] font-bold px-2 py-0.5 rounded text-white"
+                style={{ background: "var(--accent-primary)" }}
+              >
+                + NEW SURVEY
+              </span>
+              <span
+                className="font-mono text-[12px] font-semibold transition-transform group-hover:translate-x-1"
+                style={{ color: "var(--accent-primary)" }}
+              >
+                Configure →
+              </span>
+            </div>
+            <p
+              style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginTop: 4 }}
+            >
+              Start New Analysis
+            </p>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              Upload a side-scan sonar frame (.png, .jpg, .tif) and configure detection thresholds and survey parameters.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => surveys.length > 0 && onOpen(surveys[0]!)}
+            disabled={surveys.length === 0}
+            className="flex flex-col items-start gap-2 p-5 text-left transition-all hover:shadow-md cursor-pointer disabled:opacity-50 group"
             style={{
               background: "var(--bg-surface)",
               border: "1px solid var(--border-default)",
@@ -174,60 +152,123 @@ function Gateway({
               boxShadow: "var(--shadow-card)",
             }}
           >
-            {surveys.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => onOpen(s)}
-                className="w-full flex items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-[var(--bg-surface-sunken)] cursor-pointer"
+            <div className="flex items-center justify-between w-full">
+              <span
+                className="font-mono text-[10px] font-bold px-2 py-0.5 rounded"
                 style={{
-                  borderBottom: i < surveys.length - 1 ? "1px solid var(--border-default)" : "none",
+                  background: "var(--bg-surface-sunken)",
+                  border: "1px solid var(--border-strong)",
+                  color: "var(--text-secondary)",
                 }}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                      {s.name}
-                    </span>
-                    {s.isSample && (
-                      <span
-                        className="px-1.5 py-0.5 rounded font-mono text-[9px] font-bold"
-                        style={{
-                          background: "var(--bg-surface-sunken)",
-                          border: "1px solid var(--border-strong)",
-                          color: "var(--text-tertiary)",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        DEMO
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 11,
-                      color: "var(--text-tertiary)",
-                      marginTop: 2,
-                    }}
-                  >
-                    {s.region ?? "No region"} · {formatTs(s.timestamp)} · {s.result.summary.total_detections} detections
-                  </p>
-                </div>
+                OPEN EXISTING
+              </span>
+              {surveys.length > 0 && (
                 <span
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--accent-primary)" }}
+                  className="font-mono text-[12px] font-semibold transition-transform group-hover:translate-x-1"
+                  style={{ color: "var(--accent-primary)" }}
                 >
-                  Open →
+                  Resume →
                 </span>
-              </button>
-            ))}
-          </div>
+              )}
+            </div>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginTop: 4 }}>
+              Open Last Survey
+            </p>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              {surveys.length > 0
+                ? `Resume: ${surveys[0]!.name} (${surveys[0]!.result.summary.total_detections} contacts)`
+                : "No surveys run yet."}
+            </p>
+          </button>
         </div>
-      )}
+
+        {/* Right Column: Recent Surveys */}
+        <div className="flex flex-col min-h-0">
+          <h2
+            className="shrink-0 mb-2 text-[11px] font-semibold uppercase tracking-wider font-mono"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Recent Surveys ({surveys.length})
+          </h2>
+          {surveys.length === 0 ? (
+            <div
+              className="flex-1 flex flex-col items-center justify-center p-8 text-center"
+              style={{
+                background: "var(--bg-surface)",
+                border: "1px dashed var(--border-strong)",
+                borderRadius: "var(--radius)",
+              }}
+            >
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--text-secondary)" }}>
+                No past survey records. Click "Start New Analysis" to create one.
+              </p>
+            </div>
+          ) : (
+            <div
+              className="flex-1 overflow-y-auto"
+              style={{
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-default)",
+                borderRadius: "var(--radius)",
+                boxShadow: "var(--shadow-card)",
+              }}
+            >
+              {surveys.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => onOpen(s)}
+                  className="w-full flex items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-[var(--bg-surface-sunken)] cursor-pointer"
+                  style={{
+                    borderBottom: i < surveys.length - 1 ? "1px solid var(--border-default)" : "none",
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                        {s.name}
+                      </span>
+                      {s.isSample && (
+                        <span
+                          className="px-1.5 py-0.5 rounded font-mono text-[9px] font-bold"
+                          style={{
+                            background: "var(--bg-surface-sunken)",
+                            border: "1px solid var(--border-strong)",
+                            color: "var(--text-tertiary)",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          DEMO
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 11,
+                        color: "var(--text-tertiary)",
+                        marginTop: 2,
+                      }}
+                    >
+                      {s.region ?? "No region"} · {formatTs(s.timestamp)} · {s.result.summary.total_detections} detections
+                    </p>
+                  </div>
+                  <span
+                    style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--accent-primary)" }}
+                  >
+                    Open →
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Prototype indicator */}
       <p
-        className="mt-8 font-mono text-[10px] text-center"
+        className="mt-4 font-mono text-[10px] text-center shrink-0"
         style={{ color: "var(--text-tertiary)" }}
       >
         PROTOTYPE DATA — MOCK PROVIDER
@@ -496,89 +537,91 @@ function ResultsWorkspace({
   const summary = result.summary;
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Sub-header bar */}
       <div
-        className="shrink-0 flex flex-wrap items-center justify-between gap-3 px-6 py-2.5"
+        className="shrink-0"
         style={{
           borderBottom: "1px solid var(--border-default)",
           background: "var(--bg-surface)",
         }}
       >
-        {/* Left: back + survey name */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center gap-1.5 transition-opacity hover:opacity-70 cursor-pointer"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}
-          >
-            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
-            Surveys
-          </button>
-          <span style={{ color: "var(--border-strong)", userSelect: "none" }}>/</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-            {survey.name}
-          </span>
-          {survey.isSample && (
-            <span
-              className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] font-bold"
+        <div className="mx-auto max-w-[1400px] w-full flex flex-wrap items-center justify-between gap-3 px-6 py-2">
+          {/* Left: back + survey name */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex items-center gap-1.5 transition-opacity hover:opacity-70 cursor-pointer"
+              style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}
+            >
+              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
+              Surveys
+            </button>
+            <span style={{ color: "var(--border-strong)", userSelect: "none" }}>/</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+              {survey.name}
+            </span>
+            {survey.isSample && (
+              <span
+                className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] font-bold"
+                style={{
+                  background: "#FEF3C7",
+                  border: "1px solid #F59E0B",
+                  color: "#92400E",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                <FlaskConical className="h-3 w-3" strokeWidth={2} />
+                DEMO METADATA
+              </span>
+            )}
+          </div>
+
+          {/* Right: telemetry chips */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="flex items-center gap-2 px-3 py-1 rounded"
+              style={{ background: "var(--bg-surface-sunken)", border: "1px solid var(--border-default)" }}
+            >
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, color: "var(--text-secondary)", letterSpacing: "0.04em" }}>
+                FRAME
+              </span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
+                {result.image_id}
+              </span>
+            </div>
+            <div
+              className="flex items-center gap-2 px-3 py-1 rounded"
+              style={{ background: "var(--bg-surface-sunken)", border: "1px solid var(--border-default)" }}
+            >
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, color: "var(--text-secondary)", letterSpacing: "0.04em" }}>
+                INFERENCE
+              </span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--accent-primary)" }}>
+                {result.processing_time_ms} ms
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => void navigate({ to: "/metrics", search: { id: survey.id } })}
+              className="h-8 px-4 inline-flex items-center gap-1.5 font-semibold transition-opacity hover:opacity-85 cursor-pointer"
               style={{
-                background: "#FEF3C7",
-                border: "1px solid #F59E0B",
-                color: "#92400E",
-                letterSpacing: "0.04em",
+                borderRadius: "var(--radius)",
+                background: "var(--accent-primary)",
+                color: "var(--accent-primary-fg)",
+                fontSize: 12,
+                fontFamily: "var(--font-sans)",
               }}
             >
-              <FlaskConical className="h-3 w-3" strokeWidth={2} />
-              DEMO METADATA
-            </span>
-          )}
-        </div>
-
-        {/* Right: telemetry chips */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div
-            className="flex items-center gap-2 px-3 py-1 rounded"
-            style={{ background: "var(--bg-surface-sunken)", border: "1px solid var(--border-default)" }}
-          >
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, color: "var(--text-secondary)", letterSpacing: "0.04em" }}>
-              FRAME
-            </span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
-              {result.image_id}
-            </span>
+              View Report →
+            </button>
           </div>
-          <div
-            className="flex items-center gap-2 px-3 py-1 rounded"
-            style={{ background: "var(--bg-surface-sunken)", border: "1px solid var(--border-default)" }}
-          >
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, color: "var(--text-secondary)", letterSpacing: "0.04em" }}>
-              INFERENCE
-            </span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--accent-primary)" }}>
-              {result.processing_time_ms} ms
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => void navigate({ to: "/metrics", search: { id: survey.id } })}
-            className="h-8 px-4 inline-flex items-center gap-1.5 font-semibold transition-opacity hover:opacity-85 cursor-pointer"
-            style={{
-              borderRadius: "var(--radius)",
-              background: "var(--accent-primary)",
-              color: "var(--accent-primary-fg)",
-              fontSize: 12,
-              fontFamily: "var(--font-sans)",
-            }}
-          >
-            View Report →
-          </button>
         </div>
       </div>
 
       {/* 3-column evidence workspace */}
-      <main className="mx-auto max-w-[1600px] w-full p-6 grid flex-1 grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)_360px] xl:grid-cols-[300px_minmax(0,1fr)_380px]">
+      <main className="mx-auto max-w-[1400px] w-full px-6 py-4 grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)_340px] xl:grid-cols-[280px_minmax(0,1fr)_360px] min-h-0">
         {/* Left — Legend + metadata */}
         <Panel title="Survey Details" className="analysis-col">
           {/* Survey metadata */}
@@ -777,54 +820,57 @@ function Dashboard() {
 
   return (
     /* Guardrail: data-dense console — gradient-mesh on shell only, do NOT add grid-field dot texture here */
-    <div className="flex min-h-screen flex-col gradient-mesh">
+    <div className="flex min-h-screen lg:h-screen lg:overflow-hidden flex-col gradient-mesh">
       <SiteHeader />
 
-      {error && (
-        <div
-          className="mx-auto max-w-[640px] w-full mt-4 px-6 flex gap-2 p-3"
-          style={{
-            border: "1px solid var(--border-default)",
-            borderLeftWidth: 3,
-            borderLeftColor: "var(--state-known-confirmed)",
-            borderRadius: "var(--radius)",
-            fontSize: 12,
-            color: "var(--text-secondary)",
-            background: "var(--bg-surface-sunken)",
-          }}
-        >
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.5} style={{ color: "var(--state-known-confirmed)" }} />
-          <span>{error}</span>
-        </div>
-      )}
+      {/* flex-1 wrapper so child states always start from just below the header */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {error && (
+          <div
+            className="mx-auto max-w-[640px] w-full mt-4 px-6 flex gap-2 p-3"
+            style={{
+              border: "1px solid var(--border-default)",
+              borderLeftWidth: 3,
+              borderLeftColor: "var(--state-known-confirmed)",
+              borderRadius: "var(--radius)",
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              background: "var(--bg-surface-sunken)",
+            }}
+          >
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.5} style={{ color: "var(--state-known-confirmed)" }} />
+            <span>{error}</span>
+          </div>
+        )}
 
-      {state === "gateway" && (
-        <Gateway
-          onNew={() => setState("setup")}
-          onOpen={(s) => { setActiveSurvey(s); setState("results"); }}
-        />
-      )}
+        {state === "gateway" && (
+          <Gateway
+            onNew={() => setState("setup")}
+            onOpen={(s) => { setActiveSurvey(s); setState("results"); }}
+          />
+        )}
 
-      {state === "setup" && (
-        <SetupForm
-          onCancel={() => setState("gateway")}
-          onSubmit={handleSubmit}
-        />
-      )}
+        {state === "setup" && (
+          <SetupForm
+            onCancel={() => setState("gateway")}
+            onSubmit={handleSubmit}
+          />
+        )}
 
-      {state === "processing" && <Processing />}
+        {state === "processing" && <Processing />}
 
-      {state === "results" && activeSurvey && (
-        <ResultsWorkspace
-          survey={activeSurvey}
-          onBack={() => setState("gateway")}
-        />
-      )}
+        {state === "results" && activeSurvey && (
+          <ResultsWorkspace
+            survey={activeSurvey}
+            onBack={() => setState("gateway")}
+          />
+        )}
+      </div>
 
       {/* Footer */}
-      <footer style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
+      <footer className="shrink-0" style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
         <div
-          className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-2 px-6 py-4"
+          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 py-3"
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Survey Workspace</span>
