@@ -64,9 +64,9 @@ export const PRIORITY_COLOR: Record<Detection["priority"], string> = {
 };
 
 export const PRIORITY_LABEL: Record<Detection["priority"], string> = {
-  high_priority: "Confirmed Threat",
+  high_priority: "Corroborated Target",
   review_required: "Review Required",
-  normal: "Classified Benign",
+  normal: "Classified Contact",
   low_priority: "Unclassified Anomaly",
 };
 
@@ -90,7 +90,6 @@ export function getContactSemantic(d: Detection, theme?: "light" | "dark"): Cont
   const palette = activeTheme === "dark" ? SEMANTIC_PALETTE_DARK : SEMANTIC_PALETTE_LIGHT;
 
   const isAnomaly = d.type === "unknown_anomaly" || !d.class;
-  const isMine = d.class?.toLowerCase() === "mine";
   const conf = isAnomaly
     ? d.anomaly_score
     : (d.detector_confidence ?? d.operational_confidence ?? 0.5);
@@ -111,12 +110,12 @@ export function getContactSemantic(d: Detection, theme?: "light" | "dark"): Cont
     };
   }
 
-  if (isMine) {
+  if (d.priority === "high_priority") {
     return {
       color: "var(--state-known-confirmed)",
       hex: palette.knownConfirmed,
-      label: "THREAT // MINE",
-      shortLabel: "MINE",
+      label: `CORROBORATED // ${d.class ? d.class.toUpperCase() : "TARGET"}`,
+      shortLabel: d.class ? d.class.toUpperCase() : "TARGET",
       isDashed: false,
       confidence: conf,
       fillOpacity,
@@ -140,7 +139,7 @@ export function getContactSemantic(d: Detection, theme?: "light" | "dark"): Cont
   return {
     color: "var(--state-classified-benign)",
     hex: palette.classifiedBenign,
-    label: `BENIGN // ${d.class.toUpperCase()}`,
+    label: `CLASSIFIED // ${d.class.toUpperCase()}`,
     shortLabel: d.class.toUpperCase(),
     isDashed: false,
     confidence: conf,

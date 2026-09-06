@@ -700,19 +700,19 @@ function ResultsWorkspace({
             <div className="space-y-1.5 text-[11px] font-mono">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-xs bg-[#B3261E]" />
-                <span style={{ color: "var(--text-primary)" }}>Red — Confirmed Threat (Mine)</span>
+                <span style={{ color: "var(--text-primary)" }}>Solid Red — Corroborated Target (HIGH)</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-xs bg-[#2563A6]" />
-                <span style={{ color: "var(--text-primary)" }}>Blue — Classified Benign</span>
+                <span style={{ color: "var(--text-primary)" }}>Blue — Classified Contact (YOLOv8)</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-xs bg-[#C2600A]" />
-                <span style={{ color: "var(--text-primary)" }}>Orange — Caution / Review</span>
+                <span style={{ color: "var(--text-primary)" }}>Orange — Single-Branch Review (≥ 0.70 / ≥ 0.55)</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-xs border border-dashed border-[#5B5F7A] bg-[#5B5F7A]/30" />
-                <span style={{ color: "var(--text-primary)" }}>Dashed — Unclassified Anomaly</span>
+                <span style={{ color: "var(--text-primary)" }}>Dashed — Unclassified Anomaly (PatchCore)</span>
               </div>
             </div>
           </div>
@@ -782,7 +782,7 @@ function ResultsWorkspace({
             ))}
           </div>
           <p className="mt-2 font-mono text-[10px]" style={{ color: "var(--text-tertiary)" }}>
-            Acoustic clutter suppressed by physics validation before analyst feed.
+            Acoustic clutter suppressed by dual-branch corroboration fusion before analyst feed.
           </p>
 
           {/* Detection cards */}
