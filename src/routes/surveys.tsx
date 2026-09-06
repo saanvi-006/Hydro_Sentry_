@@ -109,20 +109,6 @@ function Gateway({
               Start a new acoustic survey analysis or continue from a previous mission run.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onNew}
-              className="inline-flex h-9 items-center justify-center gap-1.5 px-4 font-semibold transition-opacity hover:opacity-90 cursor-pointer shrink-0 text-xs"
-              style={{
-                borderRadius: "var(--radius)",
-                background: "var(--accent-primary)",
-                color: "var(--accent-primary-fg)",
-              }}
-            >
-              + New Survey
-            </button>
-          </div>
         </div>
       </div>
 
