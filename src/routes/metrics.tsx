@@ -91,7 +91,7 @@ function Reports() {
             Run a survey first to generate a report.
           </p>
           <Link
-            to="/dashboard"
+            to="/surveys"
             className="mt-2 inline-flex h-10 items-center justify-center px-5 font-semibold transition-opacity hover:opacity-90"
             style={{
               borderRadius: "var(--radius)",

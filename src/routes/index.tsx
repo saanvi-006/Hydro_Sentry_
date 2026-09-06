@@ -353,7 +353,7 @@ function Home() {
 
               <div className="mt-8 flex flex-wrap items-center gap-3 fade-up stagger-3">
                 <Link
-                  to="/dashboard"
+                  to="/surveys"
                   className="inline-flex h-10 items-center gap-2 px-5 transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
                   style={{
                     borderRadius: "var(--radius)",

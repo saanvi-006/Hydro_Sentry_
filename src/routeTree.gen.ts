@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as MetricsRouteImport } from './routes/metrics'
-import { Route as OverviewRouteImport } from './routes/overview'
+import { Route as SurveysRouteImport } from './routes/surveys'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,9 +29,9 @@ const MetricsRoute = MetricsRouteImport.update({
   path: '/metrics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OverviewRoute = OverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
+const SurveysRoute = SurveysRouteImport.update({
+  id: '/surveys',
+  path: '/surveys',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -39,34 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/metrics': typeof MetricsRoute
-  '/overview': typeof OverviewRoute
+  '/surveys': typeof SurveysRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/metrics': typeof MetricsRoute
-  '/overview': typeof OverviewRoute
+  '/surveys': typeof SurveysRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/metrics': typeof MetricsRoute
-  '/overview': typeof OverviewRoute
+  '/surveys': typeof SurveysRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/metrics' | '/overview'
+  fullPaths: '/' | '/dashboard' | '/metrics' | '/surveys'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/metrics' | '/overview'
-  id: '__root__' | '/' | '/dashboard' | '/metrics' | '/overview'
+  to: '/' | '/dashboard' | '/metrics' | '/surveys'
+  id: '__root__' | '/' | '/dashboard' | '/metrics' | '/surveys'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   MetricsRoute: typeof MetricsRoute
-  OverviewRoute: typeof OverviewRoute
+  SurveysRoute: typeof SurveysRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,11 +92,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MetricsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/overview': {
-      id: '/overview'
-      path: '/overview'
-      fullPath: '/overview'
-      preLoaderRoute: typeof OverviewRouteImport
+    '/surveys': {
+      id: '/surveys'
+      path: '/surveys'
+      fullPath: '/surveys'
+      preLoaderRoute: typeof SurveysRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -106,7 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   MetricsRoute: MetricsRoute,
-  OverviewRoute: OverviewRoute,
+  SurveysRoute: SurveysRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
