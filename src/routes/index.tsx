@@ -156,7 +156,7 @@ function SonarPreviewPanel() {
         </div>
         <div className="px-3 py-2 flex flex-col justify-center" style={{ background: "var(--bg-surface)" }}>
           <span style={{ fontSize: 9, letterSpacing: "0.04em", color: "var(--text-tertiary)", textTransform: "uppercase" }}>Position</span>
-          <span className="truncate" style={{ color: "var(--text-secondary)", marginTop: 1 }}>15.3812°N · 73.8014°E</span>
+          <span style={{ color: "var(--text-secondary)", marginTop: 1 }}>15.3812°N · 73.8014°E</span>
         </div>
         <div className="px-3 py-2 flex flex-col justify-center" style={{ background: "var(--bg-surface)" }}>
           <span style={{ fontSize: 9, letterSpacing: "0.04em", color: "var(--text-tertiary)", textTransform: "uppercase" }}>Latency</span>

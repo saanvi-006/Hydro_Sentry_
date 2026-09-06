@@ -901,15 +901,20 @@ function Dashboard() {
             style={{
               border: "1px solid var(--border-default)",
               borderLeftWidth: 3,
-              borderLeftColor: "var(--state-known-confirmed)",
+              borderLeftColor: "#B3261E",
               borderRadius: "var(--radius)",
               fontSize: 12,
               color: "var(--text-secondary)",
               background: "var(--bg-surface-sunken)",
             }}
           >
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.5} style={{ color: "var(--state-known-confirmed)" }} />
-            <span>{error}</span>
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.5} style={{ color: "#B3261E" }} />
+            <span>
+              <span style={{ fontWeight: 700, color: "#B3261E", fontFamily: "var(--font-mono)", marginRight: 6 }}>
+                BACKEND ERROR
+              </span>
+              {error}
+            </span>
           </div>
         )}
 

@@ -1,34 +1,50 @@
 import type { DetectionProvider } from "./provider";
 import type { DetectionResult, HealthStatus } from "./types";
-import { mockProvider } from "./mockProvider";
 
 const BASE_URL = import.meta.env["VITE_API_BASE_URL"] ?? "http://localhost:8000";
 
+/** Thrown when the backend returns an error or is unreachable. */
+export class BackendUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BackendUnavailableError";
+  }
+}
+
 export const liveProvider: DetectionProvider = {
   async detect(file, threshold): Promise<DetectionResult> {
+    let res: Response;
     try {
       const form = new FormData();
       if (file) form.append("image", file);
       form.append("confidence_threshold", String(threshold));
-      const res = await fetch(`${BASE_URL}/api/detect`, { method: "POST", body: form });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(body?.error ?? `Detection request failed (${res.status})`);
-      }
-      return (await res.json()) as DetectionResult;
+      res = await fetch(`${BASE_URL}/api/detect`, { method: "POST", body: form });
     } catch {
-      // Backend unavailable — degrade to mock data so the console stays usable.
-      return mockProvider.detect(file, threshold);
+      throw new BackendUnavailableError(
+        `Backend unreachable at ${BASE_URL}. Check that the inference server is running.`,
+      );
     }
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      throw new BackendUnavailableError(
+        body?.error ?? `Detection request failed (HTTP ${res.status}).`,
+      );
+    }
+
+    return (await res.json()) as DetectionResult;
   },
 
   async checkHealth(): Promise<HealthStatus> {
+    let res: Response;
     try {
-      const res = await fetch(`${BASE_URL}/api/health`);
-      if (!res.ok) throw new Error(`Health check failed (${res.status})`);
-      return (await res.json()) as HealthStatus;
+      res = await fetch(`${BASE_URL}/api/health`);
     } catch {
-      return mockProvider.checkHealth();
+      throw new BackendUnavailableError(
+        `Backend unreachable at ${BASE_URL}. Check that the inference server is running.`,
+      );
     }
+    if (!res.ok) throw new BackendUnavailableError(`Health check failed (HTTP ${res.status}).`);
+    return (await res.json()) as HealthStatus;
   },
 };

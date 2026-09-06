@@ -1,6 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Menu } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 /** Concentric-arcs sonar icon */
 function SonarIcon() {
@@ -22,6 +27,7 @@ const navLinks = [
 
 export function SiteHeader() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const current = (document.documentElement.getAttribute("data-theme") as "light" | "dark") || "light";
@@ -78,9 +84,10 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        {/* Navigation + operational status indicator + theme toggle */}
+        {/* Desktop navigation + theme toggle */}
         <div className="flex items-center gap-2">
-          <nav className="flex items-center gap-1">
+          {/* Desktop nav — hidden on small screens */}
+          <nav className="hidden md:flex items-center gap-1">
             {navLinks.map(({ to, label, exact }) => (
               <Link
                 key={to}
@@ -94,7 +101,7 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          {/* Theme switcher toggle */}
+          {/* Theme toggle */}
           <button
             type="button"
             onClick={toggleTheme}
@@ -114,6 +121,49 @@ export function SiteHeader() {
               <Sun className="h-3.5 w-3.5" strokeWidth={1.75} style={{ color: "var(--accent-primary)" }} />
             )}
           </button>
+
+          {/* Mobile hamburger — only visible below md */}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="Open navigation menu"
+                className="md:hidden flex items-center justify-center h-7 w-7 rounded cursor-pointer transition-colors"
+                style={{
+                  background: "var(--bg-surface-sunken)",
+                  border: "1px solid var(--border-default)",
+                  color: "var(--text-secondary)",
+                  marginLeft: 4,
+                }}
+              >
+                <Menu className="h-4 w-4" strokeWidth={1.75} />
+              </button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              style={{
+                background: "var(--bg-surface)",
+                borderLeft: "1px solid var(--border-default)",
+                padding: "1.5rem 1.25rem",
+                width: "220px",
+              }}
+            >
+              <nav className="flex flex-col gap-1 mt-6">
+                {navLinks.map(({ to, label, exact }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    activeOptions={{ exact }}
+                    onClick={() => setMobileOpen(false)}
+                    className="nav-link cursor-pointer py-2"
+                    activeProps={{ className: "nav-link nav-link-active cursor-pointer py-2" }}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

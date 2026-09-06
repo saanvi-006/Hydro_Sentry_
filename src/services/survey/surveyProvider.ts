@@ -1,4 +1,5 @@
-import { mockProvider, mockScans } from "@/services/detection/mockProvider";
+import { detectionProvider } from "@/services/detection";
+import { mockScans } from "@/services/detection/mockProvider";
 import type { SurveyRecord, SurveyCreateParams } from "./types";
 
 let counter = 0;
@@ -43,7 +44,7 @@ export const surveyProvider = {
   },
 
   async create(params: SurveyCreateParams): Promise<SurveyRecord> {
-    const result = await mockProvider.detect(params.file, params.threshold);
+    const result = await detectionProvider.detect(params.file, params.threshold);
     const record: SurveyRecord = {
       id: genId(),
       name: params.name,
