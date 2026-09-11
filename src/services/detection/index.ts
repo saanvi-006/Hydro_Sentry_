@@ -3,14 +3,14 @@ import { liveProvider } from "./liveProvider";
 import type { DetectionProvider } from "./provider";
 
 export function isLiveMode(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") return true;
   try {
     const stored = localStorage.getItem("hydrosentry-provider");
-    if (stored) return stored === "live";
+    if (stored !== null) return stored === "live";
   } catch {
     // ignore
   }
-  return import.meta.env["VITE_USE_LIVE_API"] === "true";
+  return import.meta.env["VITE_USE_LIVE_API"] !== "false";
 }
 
 export function setLiveMode(live: boolean): void {

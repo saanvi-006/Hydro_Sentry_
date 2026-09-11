@@ -18,6 +18,7 @@ const seedSurveys: SurveyRecord[] = [
     threshold: 0.25,
     result: mockScans[0]!,
     isSample: true,
+    location: { lat: 9.15, lon: 79.15 },
   },
   {
     id: "sample-000241",
@@ -28,6 +29,7 @@ const seedSurveys: SurveyRecord[] = [
     threshold: 0.25,
     result: mockScans[1]!,
     isSample: true,
+    location: { lat: 9.85, lon: 79.45 },
   },
   {
     id: "sample-000021",
@@ -38,6 +40,7 @@ const seedSurveys: SurveyRecord[] = [
     threshold: 0.25,
     result: mockScans[2]!,
     isSample: true,
+    location: { lat: 15.40, lon: 73.70 },
   },
   {
     id: "sample-000057",
@@ -48,6 +51,7 @@ const seedSurveys: SurveyRecord[] = [
     threshold: 0.25,
     result: mockScans[4]!,
     isSample: true,
+    location: { lat: 10.57, lon: 72.64 },
   },
   {
     id: "sample-000062",
@@ -58,8 +62,72 @@ const seedSurveys: SurveyRecord[] = [
     threshold: 0.25,
     result: mockScans[5]!,
     isSample: true,
+    location: { lat: 9.80, lon: 79.40 },
   },
 ];
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => resolve("");
+    reader.readAsDataURL(file);
+  });
+}
+
+export function parseRegionToCoords(region?: string): { lat: number; lon: number } | null {
+  if (!region) return null;
+  const trimmed = region.trim();
+
+  // 1. Direct coordinate check: "15.29, 73.82" or "15.29° N, 73.82° E"
+  const coordMatch = trimmed.match(/([+-]?\d+(?:\.\d+)?)\s*°?\s*([NS])?[\s,;/]+([+-]?\d+(?:\.\d+)?)\s*°?\s*([EW])?/i);
+  if (coordMatch) {
+    let lat = parseFloat(coordMatch[1]);
+    if (coordMatch[2]?.toUpperCase() === "S") lat = -lat;
+    let lon = parseFloat(coordMatch[3]);
+    if (coordMatch[4]?.toUpperCase() === "W") lon = -lon;
+    if (!isNaN(lat) && !isNaN(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+      return { lat: Number(lat.toFixed(6)), lon: Number(lon.toFixed(6)) };
+    }
+  }
+
+  // 2. Comprehensive coastal/marine region dictionary
+  const lower = trimmed.toLowerCase();
+  const REGION_MAP: Array<{ keywords: string[]; coords: [number, number] }> = [
+    { keywords: ["mannar"], coords: [9.15, 79.15] },
+    { keywords: ["palk", "strait"], coords: [9.85, 79.45] },
+    { keywords: ["goa", "mormugao", "panaji", "continental shelf"], coords: [15.40, 73.70] },
+    { keywords: ["mumbai", "bombay", "high"], coords: [18.95, 72.80] },
+    { keywords: ["chennai", "madras", "coromandel"], coords: [13.10, 80.35] },
+    { keywords: ["puducherry", "pondicherry"], coords: [11.93, 79.85] },
+    { keywords: ["kochi", "cochin", "kerala", "malabar"], coords: [9.96, 76.22] },
+    { keywords: ["vizag", "visakhapatnam", "andhra"], coords: [17.68, 83.35] },
+    { keywords: ["lakshadweep", "kavaratti", "agatti", "minicoy"], coords: [10.57, 72.64] },
+    { keywords: ["andaman", "nicobar", "port blair"], coords: [11.66, 92.74] },
+    { keywords: ["kutch", "kandla", "gujarat"], coords: [22.50, 69.50] },
+    { keywords: ["khambhat", "surat"], coords: [21.10, 72.50] },
+    { keywords: ["kolkata", "calcutta", "haldia", "sundarbans"], coords: [21.65, 88.05] },
+    { keywords: ["paradip", "odisha", "puri"], coords: [20.25, 86.70] },
+    { keywords: ["kanyakumari", "comorin"], coords: [8.08, 77.55] },
+    { keywords: ["mangalore", "karnataka"], coords: [12.87, 74.82] },
+    { keywords: ["tuticorin", "thoothukudi"], coords: [8.76, 78.13] },
+    { keywords: ["arabian"], coords: [15.00, 68.00] },
+    { keywords: ["bengal"], coords: [14.00, 86.00] },
+    { keywords: ["indian ocean"], coords: [-2.00, 78.00] },
+    { keywords: ["red sea"], coords: [20.00, 38.50] },
+    { keywords: ["singapore", "malacca"], coords: [1.25, 103.80] },
+    { keywords: ["persian", "gulf of oman"], coords: [26.00, 52.00] },
+    { keywords: ["mediterranean"], coords: [34.50, 18.50] },
+  ];
+
+  for (const item of REGION_MAP) {
+    if (item.keywords.some((k) => lower.includes(k))) {
+      return { lat: item.coords[0], lon: item.coords[1] };
+    }
+  }
+
+  return null;
+}
 
 const STORAGE_KEY = "hydrosentry-surveys";
 
@@ -79,9 +147,9 @@ function saveUserSurveys(records: SurveyRecord[]): void {
   try {
     // Only persist non-sample user surveys to keep storage slim
     const userSurveys = records.filter((r) => !r.isSample);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userSurveys.slice(0, 50)));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userSurveys.slice(0, 25)));
   } catch {
-    // ignore
+    // ignore quota errors
   }
 }
 
@@ -103,11 +171,39 @@ export const surveyProvider = {
     let imageUrl: string | undefined = undefined;
     if (params.file && typeof window !== "undefined") {
       try {
-        imageUrl = URL.createObjectURL(params.file);
+        const dataUrl = await readFileAsDataUrl(params.file);
+        imageUrl = dataUrl || URL.createObjectURL(params.file);
       } catch {
-        // ignore
+        try {
+          imageUrl = URL.createObjectURL(params.file);
+        } catch {
+          // ignore
+        }
       }
     }
+
+    const location = parseRegionToCoords(params.region) ?? { lat: 11.925, lon: 79.865 };
+
+    // Distribute detections with realistic spatial offsets around the survey location
+    const localizedDetections = result.detections.map((d, idx) => {
+      if (d.location && typeof d.location.lat === "number" && typeof d.location.lon === "number") {
+        return d;
+      }
+      const offsetX = ((d.bbox?.x_min ?? 0.5) - 0.5) * 0.008 + idx * 0.001;
+      const offsetY = ((d.bbox?.y_min ?? 0.5) - 0.5) * 0.008 + idx * 0.001;
+      return {
+        ...d,
+        location: {
+          lat: Number((location.lat + offsetY).toFixed(6)),
+          lon: Number((location.lon + offsetX).toFixed(6)),
+        },
+      };
+    });
+
+    const localizedResult = {
+      ...result,
+      detections: localizedDetections,
+    };
 
     const record: SurveyRecord = {
       id: genId(),
@@ -116,9 +212,10 @@ export const surveyProvider = {
       description: params.description,
       timestamp: Date.now(),
       threshold: params.threshold,
-      result,
+      result: localizedResult,
       isSample: false,
       imageUrl,
+      location,
     };
     store.unshift(record);
     saveUserSurveys(store);

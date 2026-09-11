@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { SurveyRecord } from "@/services/survey";
+import { getAnnotatedImageUrl } from "@/services/detection";
 
 const realSonarImages: Record<string, { raw: string; processed: string }> = {
   "000002": { raw: "/sonar/crops/000002_raw.png", processed: "/sonar/crops/000002_processed.png" },
@@ -39,6 +40,8 @@ async function generateSonarImagePanels(
     if (key) {
       rawSrc = realSonarImages[key].raw;
       processedSrc = realSonarImages[key].processed;
+    } else if (survey.result.image_id) {
+      rawSrc = getAnnotatedImageUrl(survey.result.image_id);
     }
   }
 

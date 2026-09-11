@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
-import { isLiveMode, setLiveMode, liveProvider } from "@/services/detection";
+import { isLiveMode, setLiveMode, liveProvider, getAnnotatedImageUrl } from "@/services/detection";
 
 export const Route = createFileRoute("/surveys")({
   head: () => ({
@@ -514,24 +514,42 @@ function SetupForm({
             onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={handleDrop}
-            className="surface-sunken flex cursor-pointer flex-col items-center justify-center gap-2 px-4 py-6 text-center transition-all"
+            className="surface-sunken flex cursor-pointer flex-col items-center justify-center gap-2 px-4 py-5 text-center transition-all"
             style={{
               border: `1px dashed ${dragging ? "var(--accent-primary)" : file ? "var(--accent-primary)" : "var(--border-default)"}`,
               borderRadius: "var(--radius)",
               background: "var(--bg-surface-sunken)",
             }}
           >
-            <UploadCloud
-              className="h-5 w-5"
-              strokeWidth={1.5}
-              style={{ color: file ? "var(--accent-primary)" : "var(--text-secondary)" }}
-            />
-            <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>
-              {file ? file.name : "Drop a sonar frame or click to browse"}
-            </span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-secondary)" }}>
-              .png · .jpg · .tif
-            </span>
+            {file ? (
+              <div className="flex flex-col items-center gap-2">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="Preview"
+                  className="max-h-28 rounded object-contain border border-[var(--border-default)] shadow-xs"
+                />
+                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>
+                  {file.name} ({Math.round(file.size / 1024)} KB)
+                </span>
+                <span className="font-mono text-[10px] text-[var(--accent-primary)] hover:underline">
+                  Click to replace image frame
+                </span>
+              </div>
+            ) : (
+              <>
+                <UploadCloud
+                  className="h-5 w-5"
+                  strokeWidth={1.5}
+                  style={{ color: "var(--text-secondary)" }}
+                />
+                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>
+                  Drop a sonar frame or click to browse
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-secondary)" }}>
+                  .png · .jpg · .tif
+                </span>
+              </>
+            )}
             <input
               ref={fileRef}
               type="file"
@@ -547,14 +565,19 @@ function SetupForm({
 
         {/* Region (optional) */}
         <div>
-          <label className="eyebrow block mb-1.5" style={{ color: "var(--text-secondary)" }}>
-            Region <span style={{ color: "var(--text-tertiary)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span>
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="eyebrow" style={{ color: "var(--text-secondary)" }}>
+              Region / Coordinates <span style={{ color: "var(--text-tertiary)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span>
+            </label>
+            <span className="font-mono text-[10px] text-[var(--text-tertiary)]">
+              Map auto-centers to this location
+            </span>
+          </div>
           <input
             type="text"
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-            placeholder="e.g. Gulf of Mannar, TN"
+            placeholder="e.g. Goa Coast, Mumbai Offshore, or lat,lon (15.40, 73.70)"
             className="w-full px-3 py-2 outline-none transition-all"
             style={{
               background: "var(--bg-surface-sunken)",
@@ -832,6 +855,7 @@ function ResultsWorkspace({
             seed={result.image_id}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            imageUrl={survey.imageUrl || (isLiveMode() ? getAnnotatedImageUrl(result.image_id) : undefined)}
           />
 
           {result.detections.length === 0 && (
@@ -901,6 +925,9 @@ function ResultsWorkspace({
               detections={result.detections}
               selectedId={selectedId}
               onSelect={setSelectedId}
+              region={survey.region}
+              surveyLocation={survey.location}
+              surveyName={survey.name}
             />
           </div>
         </Panel>

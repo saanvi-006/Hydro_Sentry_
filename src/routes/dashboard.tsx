@@ -550,13 +550,21 @@ function Overview() {
                   </div>
 
                   {/* Render TrackMap */}
-                  <TrackMap
-                    detections={filteredMapDetections}
-                    selectedId={selectedContactId}
-                    onSelect={setSelectedContactId}
-                    height={280}
-                    showContactList={true}
-                  />
+                  {(() => {
+                    const activeSurvey = surveys.find((s) => s.id === selectedSurveyFilter);
+                    return (
+                      <TrackMap
+                        detections={filteredMapDetections}
+                        selectedId={selectedContactId}
+                        onSelect={setSelectedContactId}
+                        height={280}
+                        showContactList={true}
+                        region={activeSurvey?.region}
+                        surveyLocation={activeSurvey?.location}
+                        surveyName={activeSurvey?.name}
+                      />
+                    );
+                  })()}
                 </div>
               )}
             </div>

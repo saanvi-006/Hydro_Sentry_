@@ -5,7 +5,7 @@ import { SonarCanvas } from "@/components/dashboard/SonarCanvas";
 import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
-import { isLiveMode } from "@/services/detection";
+import { isLiveMode, getAnnotatedImageUrl } from "@/services/detection";
 import { FileText, Loader2 } from "lucide-react";
 import { exportPdf } from "@/services/report/pdfExport";
 
@@ -435,6 +435,7 @@ function Reports() {
                     seed={result.image_id}
                     selectedId={null}
                     onSelect={() => {}}
+                    imageUrl={survey.imageUrl || (isLiveMode() ? getAnnotatedImageUrl(result.image_id) : undefined)}
                   />
                 </div>
               </div>

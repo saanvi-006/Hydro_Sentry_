@@ -10,6 +10,7 @@ export interface SurveyRecord {
   result: DetectionResult;
   isSample: boolean;
   imageUrl?: string;
+  location?: { lat: number; lon: number };
 }
 
 export interface SurveyCreateParams {

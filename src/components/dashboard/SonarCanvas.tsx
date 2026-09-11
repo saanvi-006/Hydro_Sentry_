@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Detection } from "@/services/detection";
 import { getContactSemantic } from "@/services/detection";
 
@@ -8,6 +8,7 @@ interface Props {
   seed: string;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  imageUrl?: string;
 }
 
 const realSonarImages: Record<string, { raw: string; processed: string }> = {
@@ -63,31 +64,80 @@ function drawSonar(canvas: HTMLCanvasElement, enhanced: boolean, seed: string) {
   ctx.putImageData(img, 0, 0);
 }
 
-export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect }: Props) {
+export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect, imageUrl }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const pair = getSonarPair(seed);
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
+    width: pair ? 715 : 1024,
+    height: pair ? 745 : 640,
+  });
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
 
+    // 1. If user uploaded custom image is provided, display it!
+    if (imageUrl) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const w = img.naturalWidth || 1024;
+        const h = img.naturalHeight || 768;
+        canvas.width = w;
+        canvas.height = h;
+        setDimensions({ width: w, height: h });
+        setImageLoaded(true);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+      };
+      img.onerror = () => {
+        if (pair) {
+          loadPair();
+        } else {
+          setImageLoaded(false);
+          drawSonar(canvas, enhanced, seed);
+        }
+      };
+      img.src = imageUrl;
+      return;
+    }
+
+    // 2. Sample evaluation crops
     if (pair) {
+      loadPair();
+      return;
+    }
+
+    // 3. Fallback procedural canvas noise
+    setImageLoaded(false);
+    drawSonar(canvas, enhanced, seed);
+
+    function loadPair() {
+      if (!pair) return;
       const src = enhanced ? pair.processed : pair.raw;
       const img = new Image();
       img.onload = () => {
+        const w = img.naturalWidth || 715;
+        const h = img.naturalHeight || 745;
+        canvas.width = w;
+        canvas.height = h;
+        setDimensions({ width: w, height: h });
+        setImageLoaded(true);
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
       };
       img.onerror = () => {
+        setImageLoaded(false);
         drawSonar(canvas, enhanced, seed);
       };
       img.src = src;
-    } else {
-      drawSonar(canvas, enhanced, seed);
     }
-  }, [enhanced, seed, pair]);
+  }, [enhanced, seed, pair, imageUrl]);
 
   return (
     <div
@@ -98,10 +148,10 @@ export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect }
         background: "var(--bg-surface-sunken)",
       }}
     >
-      <canvas ref={ref} width={pair ? 715 : 1024} height={pair ? 745 : 640} className="block w-full h-auto" />
+      <canvas ref={ref} width={dimensions.width} height={dimensions.height} className="block w-full h-auto" />
 
       {/* Center nadir track indicator — only when using synthetic fallback */}
-      {!pair && (
+      {!pair && !imageUrl && !imageLoaded && (
         <div
           className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-px opacity-40"
           style={{ borderTop: "1px dashed var(--border-strong)" }}

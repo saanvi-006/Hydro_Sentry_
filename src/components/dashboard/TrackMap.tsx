@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type * as L from "leaflet";
 import type { Detection } from "@/services/detection";
 import { getContactSemantic } from "@/services/detection";
+import { parseRegionToCoords } from "@/services/survey/surveyProvider";
 
 export type TileLayerKey = "google_hybrid" | "google_maps" | "google_satellite";
 
@@ -52,6 +53,24 @@ function getLocationDescription(lat: number, lon: number): string {
   if (lat >= 12.5 && lat <= 13.5 && lon >= 80.0 && lon <= 80.5) {
     return "Chennai Offshore · Coromandel Coast";
   }
+  if (lat >= 15.0 && lat <= 15.8 && lon >= 73.4 && lon <= 74.2) {
+    return "Goa Continental Shelf · Arabian Sea";
+  }
+  if (lat >= 18.5 && lat <= 19.5 && lon >= 72.5 && lon <= 73.2) {
+    return "Mumbai Offshore · Konkan Coast";
+  }
+  if (lat >= 9.6 && lat <= 10.3 && lon >= 75.9 && lon <= 76.5) {
+    return "Kochi Offshore · Malabar Coast";
+  }
+  if (lat >= 17.4 && lat <= 18.0 && lon >= 83.1 && lon <= 83.6) {
+    return "Visakhapatnam Coast · Bay of Bengal";
+  }
+  if (lat >= 9.8 && lat <= 11.5 && lon >= 71.5 && lon <= 74.0) {
+    return "Lakshadweep Basin · Arabian Sea";
+  }
+  if (lat >= 11.0 && lat <= 13.5 && lon >= 92.2 && lon <= 93.5) {
+    return "Andaman Sea · Port Blair Sector";
+  }
   return `${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E`;
 }
 
@@ -61,12 +80,18 @@ export function TrackMap({
   onSelect,
   height = 250,
   showContactList = true,
+  region,
+  surveyLocation,
+  surveyName,
 }: {
   detections: Detection[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   height?: number;
   showContactList?: boolean;
+  region?: string;
+  surveyLocation?: { lat: number; lon: number };
+  surveyName?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -78,13 +103,27 @@ export function TrackMap({
   const [activeTile, setActiveTile] = useState<TileLayerKey>("google_hybrid");
   const [isMapReady, setIsMapReady] = useState(false);
 
+  const parsedCoords = surveyLocation ?? parseRegionToCoords(region);
+
   const validPts = detections.filter(
     (d) => d.location && typeof d.location.lat === "number" && typeof d.location.lon === "number"
   );
 
-  const centerLat = validPts.length > 0 ? validPts[0].location!.lat : 11.925;
-  const centerLon = validPts.length > 0 ? validPts[0].location!.lon : 79.865;
-  const primaryLocationName = getLocationDescription(centerLat, centerLon);
+  const centerLat = parsedCoords
+    ? parsedCoords.lat
+    : validPts.length > 0
+    ? validPts[0].location!.lat
+    : 11.925;
+
+  const centerLon = parsedCoords
+    ? parsedCoords.lon
+    : validPts.length > 0
+    ? validPts[0].location!.lon
+    : 79.865;
+
+  const primaryLocationName = region?.trim()
+    ? region.trim()
+    : getLocationDescription(centerLat, centerLon);
 
   // 1. Initialize Leaflet Map (SSR-Safe Dynamic Client Import)
   useEffect(() => {
@@ -108,11 +147,7 @@ export function TrackMap({
         touchZoom: true,
       });
 
-      // Default oceanic position if no detection coordinates
-      const defaultCenter: [number, number] =
-        validPts.length > 0 ? [validPts[0].location!.lat, validPts[0].location!.lon] : [11.925, 79.865];
-
-      map.setView(defaultCenter, 13);
+      map.setView([centerLat, centerLon], validPts.length > 0 ? 13 : 11);
 
       // Add active Google tile layer
       const cfg = TILE_CONFIGS[activeTile];
@@ -140,6 +175,13 @@ export function TrackMap({
     };
   }, []);
 
+  // 1b. Recenter map when region or centerLat/centerLon changes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !isMapReady) return;
+    map.setView([centerLat, centerLon], validPts.length > 0 ? 13 : 11);
+  }, [centerLat, centerLon, isMapReady, validPts.length]);
+
   // 2. Switch Tile Layer (Clean direct swap between Google Hybrid, Maps, and Satellite)
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -166,7 +208,31 @@ export function TrackMap({
 
     layerGroup.clearLayers();
 
-    if (validPts.length === 0) return;
+    if (validPts.length === 0) {
+      // Render survey sector origin marker when no contact pins are present
+      const originIcon = L.divIcon({
+        className: "hs-survey-origin-icon",
+        html: `
+          <div style="display: flex; align-items: center; gap: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));">
+            <span style="display: block; width: 12px; height: 12px; border-radius: 50%; background: #2563A6; border: 2px solid #FFFFFF; box-shadow: 0 0 0 3px rgba(37,99,166,0.5);"></span>
+            <span style="background: #0A1420; color: #FFFFFF; font-family: var(--font-mono, monospace); font-size: 8.5px; font-weight: 700; padding: 2px 6px; border-radius: 3px; border: 1px solid #2563A6; line-height: 1;">SURVEY SECTOR</span>
+          </div>
+        `,
+        iconSize: [95, 20],
+        iconAnchor: [6, 10],
+      });
+      const originMarker = L.marker([centerLat, centerLon], { icon: originIcon });
+      originMarker.bindTooltip(
+        `<div style="font-family: var(--font-mono, monospace); font-size: 10px; line-height: 1.3;">
+           <div style="font-weight: 700; color: #2563A6;">SURVEY TRANSECT ORIGIN</div>
+           <div style="font-size: 9px; color: #CBD5E1;">📍 ${primaryLocationName}</div>
+           <div style="font-size: 8.5px; color: #94A3B8;">${centerLat.toFixed(4)}°N, ${centerLon.toFixed(4)}°E</div>
+         </div>`,
+        { direction: "top", offset: [0, -10], opacity: 0.95 }
+      );
+      originMarker.addTo(layerGroup);
+      return;
+    }
 
     const latLngs: [number, number][] = validPts.map((d) => [d.location!.lat, d.location!.lon]);
 
@@ -308,7 +374,7 @@ export function TrackMap({
       const bounds = L.latLngBounds(validPts.map((p) => [p.location!.lat, p.location!.lon]));
       map.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
     } else {
-      map.setView([11.925, 79.865], 13);
+      map.setView([centerLat, centerLon], 12);
     }
   };
 
@@ -442,7 +508,7 @@ export function TrackMap({
         {isMapReady && validPts.length === 0 && (
           <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-20">
             <span className="font-mono text-[10px] font-medium text-[var(--text-secondary)] bg-[var(--bg-surface)]/90 px-3 py-1 rounded border border-[var(--border-default)] shadow-xs">
-              STANDBY · NO ACTIVE CONTACT GEOMETRY
+              SECTOR TRACK ACTIVE · {primaryLocationName.toUpperCase()}
             </span>
           </div>
         )}
