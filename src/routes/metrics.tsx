@@ -1,9 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SonarCanvas } from "@/components/dashboard/SonarCanvas";
 import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
+import { isLiveMode } from "@/services/detection";
+import { FileText, Loader2 } from "lucide-react";
+import { exportPdf } from "@/services/report/pdfExport";
 
 // Search params schema (TanStack Router v1)
 export const Route = createFileRoute("/metrics")({
@@ -35,43 +39,19 @@ function formatTs(ts: number) {
   });
 }
 
-
-function exportJson(survey: SurveyRecord) {
-  const blob = new Blob([JSON.stringify(survey, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `hydrosentry-${survey.id}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportCsv(survey: SurveyRecord) {
-  const header = ["id", "type", "class", "priority", "operational_confidence", "detector_confidence", "anomaly_score", "physics_score", "lat", "lon"];
-  const rows = survey.result.detections.map((d) => [
-    d.id,
-    d.type,
-    d.class ?? "",
-    d.priority,
-    d.operational_confidence,
-    d.detector_confidence ?? "",
-    d.anomaly_score,
-    d.physics_score,
-    d.location?.lat ?? "",
-    d.location?.lon ?? "",
-  ]);
-  const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `hydrosentry-${survey.id}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 function Reports() {
+  const navigate = useNavigate();
   const { id } = Route.useSearch();
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  async function handleExportPdf(s: SurveyRecord) {
+    setGeneratingPdf(true);
+    try {
+      await exportPdf(s);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  }
 
   // Resolve survey: from ?id param, or fallback to most recent
   const allSurveys = surveyProvider.getAll();
@@ -117,57 +97,81 @@ function Reports() {
       <main
         className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 pt-4 pb-4 flex-1 flex flex-col gap-3.5 fade-up min-h-0"
       >
-        {/* ── Page header ──────────────────────────────── */}
+        {/* ── Page header with survey selector ──────────────── */}
         <div className="shrink-0 pb-4" style={{ borderBottom: "1px solid var(--border-default)" }}>
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
+            <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2">
                 <p className="eyebrow">Survey Report</p>
-                {/* Prototype indicator — shown once, here */}
                 <span
-                  className="font-mono text-[9px] px-1.5 py-0.5 rounded"
+                  className="font-mono text-[9px] px-1.5 py-0.5 rounded font-semibold"
                   style={{
-                    background: "var(--bg-surface-sunken)",
-                    border: "1px solid var(--border-strong)",
-                    color: "var(--text-tertiary)",
+                    background: isLiveMode()
+                      ? "color-mix(in srgb, var(--accent-primary) 12%, transparent)"
+                      : "var(--bg-surface-sunken)",
+                    border: `1px solid ${isLiveMode() ? "var(--accent-primary)" : "var(--border-strong)"}`,
+                    color: isLiveMode() ? "var(--accent-primary)" : "var(--text-tertiary)",
                     letterSpacing: "0.05em",
                   }}
                 >
-                  PROTOTYPE DATA — MOCK PROVIDER
+                  {isLiveMode() ? "LIVE INFERENCE BACKEND" : "MISSION ARCHIVE"}
                 </span>
               </div>
-              <h1
-                className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {survey.name}
-              </h1>
-              <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-secondary)" }}>
+
+              {/* Survey selector dropdown */}
+              <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                <label
+                  htmlFor="survey-picker"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "var(--text-tertiary)",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  MISSION:
+                </label>
+                <select
+                  id="survey-picker"
+                  value={survey.id}
+                  onChange={(e) => {
+                    void navigate({ to: "/metrics", search: { id: e.target.value } });
+                  }}
+                  style={{
+                    background: "var(--bg-surface-sunken)",
+                    border: "1px solid var(--border-default)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.3rem 0.6rem",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontFamily: "var(--font-sans)",
+                    color: "var(--text-primary)",
+                    outline: "none",
+                    cursor: "pointer",
+                    maxWidth: 360,
+                  }}
+                >
+                  {allSurveys.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({formatTs(s.timestamp)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <p className="text-[12px]" style={{ color: "var(--text-secondary)" }}>
                 {survey.region ?? "Region not specified"} · {formatTs(survey.timestamp)}
               </p>
             </div>
 
-            {/* Export buttons */}
-            <div className="flex items-center gap-2">
+            {/* Export button */}
+            <div className="flex items-center self-end sm:self-auto">
               <button
                 type="button"
-                onClick={() => exportCsv(survey)}
-                className="h-9 px-4 font-semibold transition-colors cursor-pointer hover:opacity-80"
-                style={{
-                  borderRadius: "var(--radius)",
-                  border: "1px solid var(--border-default)",
-                  background: "var(--bg-surface)",
-                  color: "var(--text-primary)",
-                  fontSize: 12,
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
-                Export CSV
-              </button>
-              <button
-                type="button"
-                onClick={() => exportJson(survey)}
-                className="h-9 px-4 font-semibold transition-colors cursor-pointer hover:opacity-80"
+                disabled={generatingPdf}
+                onClick={() => void handleExportPdf(survey)}
+                className="h-9 px-4 font-semibold transition-all cursor-pointer hover:opacity-90 disabled:opacity-60 flex items-center gap-2"
                 style={{
                   borderRadius: "var(--radius)",
                   background: "var(--accent-primary)",
@@ -175,8 +179,14 @@ function Reports() {
                   fontSize: 12,
                   fontFamily: "var(--font-mono)",
                 }}
+                title="Download official PDF survey report with raw and processed sonar imagery"
               >
-                Export JSON
+                {generatingPdf ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FileText className="h-3.5 w-3.5" strokeWidth={2} />
+                )}
+                {generatingPdf ? "Rendering PDF..." : "Export PDF"}
               </button>
             </div>
           </div>
@@ -253,7 +263,7 @@ function Reports() {
                   color: "var(--text-secondary)",
                 }}
               >
-                No detections above the confidence threshold for this survey.
+                No detections above the YOLO confidence floor for this survey.
               </p>
             ) : (
               <div
@@ -265,10 +275,10 @@ function Reports() {
                   boxShadow: "var(--shadow-card)",
                 }}
               >
-                <table className="w-full text-left min-w-[520px]">
+                <table className="w-full text-left min-w-[620px]">
                   <thead className="sticky top-0 z-10">
                     <tr style={{ borderBottom: "1px solid var(--border-default)", background: "var(--bg-surface-sunken)" }}>
-                      {["Contact ID", "Type", "Class", "Priority", "Op. Confidence", "Anomaly", "Physics"].map((h) => (
+                      {["Contact ID", "Type", "Class", "Source", "Priority", "Det. Conf.", "Anomaly", "Coordinates"].map((h) => (
                         <th
                           key={h}
                           className="px-3 py-2.5"
@@ -280,46 +290,120 @@ function Reports() {
                     </tr>
                   </thead>
                   <tbody>
-                    {result.detections.map((d, i) => (
-                      <tr
-                        key={d.id}
-                        style={{ borderBottom: i < result.detections.length - 1 ? "1px solid var(--border-default)" : "none" }}
-                      >
-                        <td className="px-3 py-2.5">
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
-                            {d.id}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>
-                            {d.type}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>
-                            {d.class ?? "—"}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-center whitespace-nowrap">
-                          <PriorityBadge priority={d.priority} />
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
-                            {(d.operational_confidence * 100).toFixed(0)}%
-                          </span>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>
-                            {d.anomaly_score.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>
-                            {d.physics_score.toFixed(2)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {result.detections.map((d, i) => {
+                      const typeLabel = d.type === "known" ? "Known Object" : "Unknown Anomaly";
+                      const rawClass = d.class_name ?? d.class;
+                      const classLabel = rawClass ? rawClass.toUpperCase() : "—";
+                      const rawSrc =
+                        d.src ??
+                        d.source ??
+                        (d.type === "unknown_anomaly" || d.detector_confidence === null
+                          ? "patchcore_only"
+                          : d.anomaly_score > 0.35
+                          ? "both"
+                          : "yolo_only");
+                      const sourceLabel =
+                        rawSrc === "both" ? "Both" : rawSrc === "yolo_only" ? "YOLO Only" : "PatchCore Only";
+                      const bucket =
+                        d.bucket ??
+                        (d.priority === "high_priority"
+                          ? "HIGH"
+                          : d.priority === "review_required"
+                          ? "REVIEW"
+                          : d.priority === "low_priority"
+                          ? "REJECT"
+                          : "NORMAL");
+                      const detConf =
+                        d.detector_confidence !== null && d.detector_confidence !== undefined
+                          ? `${Math.round(d.detector_confidence * 100)}%`
+                          : d.yolo_confidence !== null && d.yolo_confidence !== undefined
+                          ? `${Math.round(d.yolo_confidence * 100)}%`
+                          : "—";
+                      const coordinates =
+                        d.location && typeof d.location.lat === "number" && typeof d.location.lon === "number"
+                          ? `${d.location.lat.toFixed(4)}°, ${d.location.lon.toFixed(4)}°`
+                          : "—";
+
+                      return (
+                        <tr
+                          key={d.id}
+                          style={{ borderBottom: i < result.detections.length - 1 ? "1px solid var(--border-default)" : "none" }}
+                        >
+                          <td className="px-3 py-2.5">
+                            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
+                              {d.id}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>
+                              {typeLabel}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
+                              {classLabel}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span
+                              className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold"
+                              style={{
+                                background:
+                                  rawSrc === "both"
+                                    ? "rgba(37, 99, 235, 0.12)"
+                                    : rawSrc === "yolo_only"
+                                    ? "rgba(201, 161, 90, 0.18)"
+                                    : "rgba(100, 116, 139, 0.15)",
+                                color:
+                                  rawSrc === "both"
+                                    ? "#2563EB"
+                                    : rawSrc === "yolo_only"
+                                    ? "#C9A15A"
+                                    : "var(--text-secondary)",
+                              }}
+                            >
+                              {sourceLabel}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span
+                              className="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                              style={{
+                                background:
+                                  bucket === "HIGH"
+                                    ? "rgba(220, 38, 38, 0.15)"
+                                    : bucket === "REVIEW"
+                                    ? "rgba(217, 119, 6, 0.15)"
+                                    : "rgba(100, 116, 139, 0.12)",
+                                color:
+                                  bucket === "HIGH"
+                                    ? "#DC2626"
+                                    : bucket === "REVIEW"
+                                    ? "#D97706"
+                                    : "var(--text-tertiary)",
+                              }}
+                            >
+                              {bucket}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
+                              {detConf}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>
+                              {d.anomaly_score.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-tertiary)" }}>
+                              {coordinates}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -368,11 +452,11 @@ function Reports() {
               <p className="eyebrow mb-1.5">Survey Metadata</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
                 {[
-                  { label: "Frame ID",    value: result.image_id },
-                  { label: "Inference",   value: `${result.processing_time_ms} ms` },
-                  { label: "Threshold",   value: survey.threshold.toFixed(2) },
-                  { label: "Region",      value: survey.region ?? "Not specified" },
-                  { label: "Description", value: survey.description ?? "Not provided" },
+                  { label: "Frame ID",         value: result.image_id },
+                  { label: "Inference",        value: `${result.processing_time_ms} ms` },
+                  { label: "YOLO Conf. Floor", value: `${(survey.threshold * 100).toFixed(0)}% (0.25)` },
+                  { label: "Region",           value: survey.region ?? "Not specified" },
+                  { label: "Description",      value: survey.description ?? "Not provided" },
                 ].map(({ label, value }) => (
                   <div key={label}>
                     <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--text-tertiary)" }}>

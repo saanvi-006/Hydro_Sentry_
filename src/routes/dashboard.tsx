@@ -13,7 +13,7 @@ export const Route = createFileRoute("/dashboard")({
       { title: "Dashboard — HydroSentry" },
       {
         name: "description",
-        content: "Read-only overview of all past sonar survey runs, aggregated findings, and priority contacts.",
+        content: "Overview of all past sonar survey runs, aggregated findings, and priority contacts.",
       },
     ],
   }),
@@ -79,7 +79,7 @@ function Overview() {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  OVERVIEW · READ-ONLY
+                  MISSION OVERVIEW
                 </span>
               </div>
               <h1
@@ -264,19 +264,6 @@ function Overview() {
                                 >
                                   {s.name}
                                 </span>
-                                {s.isSample && (
-                                  <span
-                                    className="px-1.5 py-0.2 rounded font-mono text-[8.5px] font-bold shrink-0"
-                                    style={{
-                                      background: "var(--bg-surface-sunken)",
-                                      border: "1px solid var(--border-strong)",
-                                      color: "var(--text-tertiary)",
-                                      letterSpacing: "0.04em",
-                                    }}
-                                  >
-                                    DEMO
-                                  </span>
-                                )}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-mono text-[var(--text-secondary)]">
                                 <span>{s.region ?? "Not specified"}</span>

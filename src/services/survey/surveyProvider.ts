@@ -61,8 +61,33 @@ const seedSurveys: SurveyRecord[] = [
   },
 ];
 
-// In-memory store (most recent first)
-const store: SurveyRecord[] = [...seedSurveys];
+const STORAGE_KEY = "hydrosentry-surveys";
+
+function loadUserSurveys(): SurveyRecord[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as SurveyRecord[];
+  } catch {
+    return [];
+  }
+}
+
+function saveUserSurveys(records: SurveyRecord[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    // Only persist non-sample user surveys to keep storage slim
+    const userSurveys = records.filter((r) => !r.isSample);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userSurveys.slice(0, 50)));
+  } catch {
+    // ignore
+  }
+}
+
+// In-memory store (most recent first) initialized with user surveys + seed surveys
+const userStored = loadUserSurveys();
+const store: SurveyRecord[] = [...userStored, ...seedSurveys];
 
 export const surveyProvider = {
   getAll(): SurveyRecord[] {
@@ -75,6 +100,15 @@ export const surveyProvider = {
 
   async create(params: SurveyCreateParams): Promise<SurveyRecord> {
     const result = await detectionProvider.detect(params.file, params.threshold);
+    let imageUrl: string | undefined = undefined;
+    if (params.file && typeof window !== "undefined") {
+      try {
+        imageUrl = URL.createObjectURL(params.file);
+      } catch {
+        // ignore
+      }
+    }
+
     const record: SurveyRecord = {
       id: genId(),
       name: params.name,
@@ -84,8 +118,10 @@ export const surveyProvider = {
       threshold: params.threshold,
       result,
       isSample: false,
+      imageUrl,
     };
     store.unshift(record);
+    saveUserSurveys(store);
     return record;
   },
 };

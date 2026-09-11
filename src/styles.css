@@ -561,3 +561,37 @@
 .leaflet-tooltip-top:before {
   border-top-color: var(--border-default, #2A3649) !important;
 }
+
+/* ── Print Styles for Clean PDF / Paper Reports ─────────────────── */
+@media print {
+  header,
+  footer,
+  .no-print,
+  button,
+  select,
+  .leaflet-control-container {
+    display: none !important;
+  }
+
+  body,
+  .gradient-mesh {
+    background: #ffffff !important;
+    color: #12161c !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #d8dbe0 !important;
+  }
+
+  @page {
+    margin: 1.2cm;
+    size: A4 portrait;
+  }
+}
+

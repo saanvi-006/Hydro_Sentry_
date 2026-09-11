@@ -2,6 +2,11 @@ export interface Detection {
   id: string;
   type: "known" | "unknown_anomaly";
   class: "aircraft" | "mine" | "shipwreck" | null;
+  class_name?: "aircraft" | "shipwreck" | null;
+  source?: "both" | "yolo_only" | "patchcore_only";
+  src?: "both" | "yolo_only" | "patchcore_only";
+  bucket?: "HIGH" | "REVIEW" | "REJECT" | string;
+  yolo_confidence?: number | null;
   detector_confidence: number | null;
   anomaly_score: number;
   physics_score: number;
@@ -9,6 +14,8 @@ export interface Detection {
   priority: "normal" | "low_priority" | "review_required" | "high_priority";
   bbox: { x_min: number; y_min: number; x_max: number; y_max: number };
   location: { lat: number; lon: number } | null;
+  bbox_width_meters?: number | null;
+  bbox_height_meters?: number | null;
 }
 
 export interface DetectionResult {

@@ -9,6 +9,7 @@ export interface SurveyRecord {
   threshold: number;
   result: DetectionResult;
   isSample: boolean;
+  imageUrl?: string;
 }
 
 export interface SurveyCreateParams {

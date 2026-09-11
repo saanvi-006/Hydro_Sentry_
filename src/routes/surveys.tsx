@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { UploadCloud, ArrowLeft, Play, AlertTriangle, Loader2, FlaskConical } from "lucide-react";
+import { UploadCloud, ArrowLeft, Play, AlertTriangle, Loader2 } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SonarCanvas } from "@/components/dashboard/SonarCanvas";
 import { DetectionCard } from "@/components/dashboard/DetectionCard";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
+import { isLiveMode, setLiveMode, liveProvider } from "@/services/detection";
 
 export const Route = createFileRoute("/surveys")({
   head: () => ({
@@ -58,6 +59,112 @@ function Panel({
   );
 }
 
+// ── Backend Connection & Mode Status Widget ────────────────────────
+function BackendStatusWidget() {
+  const [mounted, setMounted] = useState(false);
+  const [live, setLive] = useState(false);
+  const [status, setStatus] = useState<"checking" | "online" | "missing_weights" | "offline">("checking");
+
+  useEffect(() => {
+    setMounted(true);
+    setLive(isLiveMode());
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!mounted || !live) return;
+    setStatus("checking");
+    liveProvider
+      .checkHealth()
+      .then((h) => {
+        if (!active) return;
+        if (h.status === "ok") {
+          setStatus(h.model_loaded ? "online" : "missing_weights");
+        } else {
+          setStatus("offline");
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setStatus("offline");
+      });
+    return () => {
+      active = false;
+    };
+  }, [mounted, live]);
+
+  const toggleMode = () => {
+    const next = !live;
+    setLive(next);
+    setLiveMode(next);
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={toggleMode}
+        className="h-8 px-3 rounded font-mono text-[11px] font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+        style={{
+          background: live ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
+          color: live ? "var(--accent-primary-fg)" : "var(--text-secondary)",
+          border: `1px solid ${live ? "var(--accent-primary)" : "var(--border-default)"}`,
+        }}
+        title="Toggle Live Backend API mode"
+      >
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{
+            background: !live
+              ? "#8890AC"
+              : status === "online"
+              ? "#22C55E"
+              : status === "missing_weights"
+              ? "#F59E0B"
+              : "#EF4444",
+          }}
+        />
+        {live ? "MODE: LIVE BACKEND" : "MODE: STANDALONE"}
+      </button>
+
+      {live && (
+        <span
+          className="font-mono text-[10px] px-2 py-1 rounded font-semibold"
+          style={{
+            background:
+              status === "online"
+                ? "color-mix(in srgb, #22C55E 15%, transparent)"
+                : status === "missing_weights"
+                ? "color-mix(in srgb, #F59E0B 15%, transparent)"
+                : "color-mix(in srgb, #EF4444 15%, transparent)",
+            color:
+              status === "online"
+                ? "#16A34A"
+                : status === "missing_weights"
+                ? "#D97706"
+                : "#DC2626",
+            border: `1px solid ${
+              status === "online"
+                ? "color-mix(in srgb, #22C55E 40%, transparent)"
+                : status === "missing_weights"
+                ? "color-mix(in srgb, #F59E0B 40%, transparent)"
+                : "color-mix(in srgb, #EF4444 40%, transparent)"
+            }`,
+          }}
+        >
+          {status === "checking"
+            ? "Pinging API…"
+            : status === "online"
+            ? "API ONLINE · ML READY"
+            : status === "missing_weights"
+            ? "API ONLINE · WEIGHTS MISSING"
+            : "API OFFLINE"}
+        </span>
+      )}
+    </div>
+  );
+}
+
 // ── Gateway ────────────────────────────────────────────────────────
 function Gateway({
   onNew,
@@ -68,6 +175,11 @@ function Gateway({
 }) {
   const surveys = surveyProvider.getAll();
   const [activeCard, setActiveCard] = useState<0 | 1>(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function formatTs(ts: number) {
     return new Date(ts).toLocaleString("en-IN", {
@@ -109,6 +221,9 @@ function Gateway({
               Start a new acoustic survey analysis or continue from a previous mission run.
             </p>
           </div>
+
+          {/* Backend Connection Status & Mode Toggle */}
+          <BackendStatusWidget />
         </div>
       </div>
 
@@ -150,7 +265,7 @@ function Gateway({
               Start New Analysis
             </p>
             <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, marginTop: 6 }}>
-              Upload a side-scan sonar acoustic frame (.png, .jpg, .tif), configure detection confidence thresholds, and trigger automated anomaly detection.
+              Upload a side-scan sonar acoustic frame (.png, .jpg, .tif), configure YOLO confidence floor (default: 25%), and trigger automated anomaly fusion detection.
             </p>
           </div>
           <div
@@ -209,7 +324,7 @@ function Gateway({
             className="pt-3 flex items-center justify-between font-mono text-[11px]"
             style={{ borderTop: "1px solid var(--border-default)", color: "var(--text-tertiary)" }}
           >
-            <span>{surveys.length > 0 ? `Timestamp: ${formatTs(surveys[0]!.timestamp)}` : "Standby"}</span>
+            <span>{mounted && surveys.length > 0 ? `Timestamp: ${formatTs(surveys[0]!.timestamp)}` : "Standby"}</span>
           </div>
         </button>
       </div>
@@ -253,19 +368,6 @@ function Gateway({
                     <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
                       {s.name}
                     </span>
-                    {s.isSample && (
-                      <span
-                        className="px-1.5 py-0.5 rounded font-mono text-[9px] font-bold"
-                        style={{
-                          background: "var(--bg-surface-sunken)",
-                          border: "1px solid var(--border-strong)",
-                          color: "var(--text-tertiary)",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        DEMO
-                      </span>
-                    )}
                   </div>
                   <p
                     style={{
@@ -293,14 +395,6 @@ function Gateway({
           </div>
         </div>
       )}
-
-      {/* Prototype indicator */}
-      <p
-        className="mt-8 font-mono text-[10px] text-center"
-        style={{ color: "var(--text-tertiary)" }}
-      >
-        PROTOTYPE DATA — MOCK PROVIDER
-      </p>
     </main>
   );
 }
@@ -499,10 +593,10 @@ function SetupForm({
         <div>
           <div className="flex items-baseline justify-between mb-2">
             <label className="eyebrow" style={{ color: "var(--text-secondary)" }}>
-              Confidence Threshold
+              YOLO Confidence Floor
             </label>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-              {threshold.toFixed(2)}
+              {Math.round(threshold * 100)}% ({threshold.toFixed(2)})
             </span>
           </div>
           <Slider
@@ -618,20 +712,6 @@ function ResultsWorkspace({
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
               {survey.name}
             </span>
-            {survey.isSample && (
-              <span
-                className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] font-bold"
-                style={{
-                  background: "#FEF3C7",
-                  border: "1px solid #F59E0B",
-                  color: "#92400E",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                <FlaskConical className="h-3 w-3" strokeWidth={2} />
-                DEMO METADATA
-              </span>
-            )}
           </div>
 
           {/* Right: telemetry chips */}
