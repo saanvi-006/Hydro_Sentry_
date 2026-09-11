@@ -2,7 +2,8 @@ import type { DetectionProvider } from "./provider";
 import type { Detection, DetectionResult, HealthStatus } from "./types";
 import { authHeader, clearSession, ensureAuth, getToken } from "@/services/auth/authService";
 
-const BASE_URL = import.meta.env["VITE_API_BASE_URL"] || "https://hydrosentry-oty1.onrender.com";
+const BASE_URL = import.meta.env["VITE_API_BASE_URL"] || "https://hydrosentry-835512366533.asia-south1.run.app";
+
 
 /** Thrown when the backend returns an error or is unreachable. */
 export class BackendUnavailableError extends Error {
