@@ -889,6 +889,32 @@ function ResultsWorkspace({
             Acoustic clutter suppressed by dual-branch corroboration fusion before analyst feed.
           </p>
 
+          <div
+            className="mt-2.5 p-2 rounded flex items-center justify-between gap-2"
+            style={{
+              background: "var(--bg-surface-sunken)",
+              border: "1px solid var(--border-default)",
+            }}
+          >
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className="font-mono text-[8.5px] font-bold px-1.5 py-0.5 rounded text-white shrink-0"
+                style={{ background: "var(--accent-primary)" }}
+              >
+                BENCHMARK
+              </span>
+              <span className="font-mono text-[10px] font-semibold text-[var(--text-primary)] truncate">
+                0.907 Best F1 · 0.928 Precision · 8 FP (vs 140 Naïve)
+              </span>
+            </div>
+            <Link
+              to="/metrics"
+              className="font-mono text-[10px] text-[var(--accent-primary)] hover:underline shrink-0"
+            >
+              Report →
+            </Link>
+          </div>
+
           {/* Detection cards */}
           <div className="mt-4 space-y-2">
             {result.detections.length === 0 ? (

@@ -4,6 +4,7 @@ import { MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TrackMap } from "@/components/dashboard/TrackMap";
 import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
+import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
 
@@ -186,6 +187,9 @@ function Overview() {
                 </div>
               ))}
             </div>
+
+            {/* ── Detection Performance Benchmark Strip ── */}
+            <DetectionPerformance compact className="shrink-0" />
 
             {/* ── Two-pane area ───────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">

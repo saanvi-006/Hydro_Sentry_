@@ -8,6 +8,7 @@ import type { SurveyRecord } from "@/services/survey";
 import { isLiveMode, getAnnotatedImageUrl } from "@/services/detection";
 import { FileText, Loader2 } from "lucide-react";
 import { exportPdf } from "@/services/report/pdfExport";
+import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
 
 // Search params schema (TanStack Router v1)
 export const Route = createFileRoute("/metrics")({
@@ -191,6 +192,9 @@ function Reports() {
             </div>
           </div>
         </div>
+
+        {/* ── Official ML Benchmark Evaluation Performance ─── */}
+        <DetectionPerformance className="shrink-0" />
 
         {/* ── Compact stat strip ───────────────────────── */}
         <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">

@@ -281,7 +281,53 @@ export async function exportPdf(survey: SurveyRecord): Promise<void> {
   });
 
   const lastTable = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable;
-  y = (lastTable ? lastTable.finalY : y + 14) + 5;
+  y = (lastTable ? lastTable.finalY : y + 14) + 4;
+
+  // ── 4b. Detection Performance Benchmark (SIH26057) ─────────────────
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(27, 58, 92);
+  doc.text("DETECTION PERFORMANCE BENCHMARK", margin, y);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.5);
+  doc.setTextColor(110, 120, 135);
+  doc.text("SIH26057 Evaluation Set · IoU ≥ 0.10", pageWidth - margin, y, { align: "right" });
+
+  y += 2.5;
+
+  const benchCardW = (contentWidth - 3 * 3) / 4;
+  const benchCardH = 13;
+  const benchmarkStats = [
+    { val: "0.907", label: "BEST F1", sub: "YOLO + PatchCore" },
+    { val: "0.894", label: "YOLO F1", sub: "Tuned YOLOv8" },
+    { val: "0.928", label: "PRECISION", sub: "Corroborative Fusion" },
+    { val: "8", label: "FALSE POSITIVES", sub: "vs 140 with Naïve Union" },
+  ];
+
+  benchmarkStats.forEach((b, idx) => {
+    const bx = margin + idx * (benchCardW + 3);
+    doc.setFillColor(246, 248, 250);
+    doc.setDrawColor(216, 219, 224);
+    doc.roundedRect(bx, y, benchCardW, benchCardH, 1.2, 1.2, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(27, 58, 92);
+    doc.text(b.val, bx + 3, y + 5.5);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(5.5);
+    doc.setTextColor(37, 99, 166);
+    doc.text(b.label, bx + 3, y + 9.2);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5);
+    doc.setTextColor(110, 120, 135);
+    doc.text(b.sub, bx + 3, y + 12.0);
+  });
+
+  y += benchCardH + 5;
 
   // ── 5. Acoustic Imagery Evidence (Raw and Processed) ────────────────
   doc.setFont("helvetica", "bold");

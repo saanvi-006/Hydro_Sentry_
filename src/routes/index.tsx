@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ScanLine, Target, ShieldAlert, Navigation } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -168,7 +169,7 @@ function SonarPreviewPanel() {
           <span className="truncate font-semibold" style={{ marginTop: 1 }}>
             <span style={{ color: "var(--state-classified-benign)" }}>3 verified</span>
             <span style={{ color: "var(--text-tertiary)" }}> · </span>
-            <span style={{ color: "var(--state-muted-meta)" }}>28 FP</span>
+            <span style={{ color: "var(--state-muted-meta)" }}>8 FP (vs 140 Naïve)</span>
           </span>
         </div>
       </div>
@@ -230,18 +231,18 @@ function SuppressionMini() {
       style={{ height: 80, borderRadius: "var(--radius)", background: "var(--bg-surface-sunken)", border: "1px solid var(--border-default)" }}
     >
       <div className="text-center">
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>142</div>
-        <div style={{ fontFamily: "var(--font-sans)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-tertiary)", marginTop: 4 }}>Raw flagged</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>140</div>
+        <div style={{ fontFamily: "var(--font-sans)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-tertiary)", marginTop: 4 }}>Naïve Union</div>
       </div>
       <div className="text-[12px] text-[var(--border-strong)]">→</div>
       <div className="text-center">
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, color: "var(--state-muted-meta)", lineHeight: 1 }}>28</div>
-        <div style={{ fontFamily: "var(--font-sans)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--state-muted-meta)", marginTop: 4 }}>FP Filtered</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, color: "var(--state-muted-meta)", lineHeight: 1 }}>132</div>
+        <div style={{ fontFamily: "var(--font-sans)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--state-muted-meta)", marginTop: 4 }}>Clutter Filtered</div>
       </div>
       <div className="text-[12px] text-[var(--border-strong)]">→</div>
       <div className="text-center">
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, color: "var(--state-classified-benign)", lineHeight: 1 }}>3</div>
-        <div style={{ fontFamily: "var(--font-sans)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--state-classified-benign)", marginTop: 4 }}>Surfaced</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, color: "var(--state-classified-benign)", lineHeight: 1 }}>8</div>
+        <div style={{ fontFamily: "var(--font-sans)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--state-classified-benign)", marginTop: 4 }}>Corroborated FP</div>
       </div>
     </div>
   );
@@ -287,7 +288,7 @@ const pillars = [
     step: "03",
     code: "SUPPRESSION",
     title: "Physics Clutter Rejection",
-    body: "Geometric validation between acoustic shadow lengths and sensor altitude eliminates bottom clutter before analyst presentation.",
+    body: "Corroborative fusion suppresses acoustic clutter from 140 down to 8 false positives (-94.3% clutter reduction) while maintaining 0.907 Best F1.",
     icon: ShieldAlert,
     Mini: SuppressionMini,
   },
@@ -394,6 +395,11 @@ function Home() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── Benchmark Detection Performance ──────────────────── */}
+      <section className="mx-auto max-w-[1400px] px-6 pt-10">
+        <DetectionPerformance />
       </section>
 
       {/* ── Capabilities (Structured 4-card Grid with Visual Anchors) ── */}
