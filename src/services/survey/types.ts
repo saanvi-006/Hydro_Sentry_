@@ -4,6 +4,7 @@ export interface SurveyRecord {
   id: string;
   name: string;
   region?: string;
+  locationName?: string;
   description?: string;
   timestamp: number; // Unix ms
   threshold: number;
@@ -17,6 +18,8 @@ export interface SurveyCreateParams {
   name: string;
   file: File | null; // null = sample
   region?: string;
+  locationName?: string;
+  coordinates?: string;
   description?: string;
   threshold: number;
 }

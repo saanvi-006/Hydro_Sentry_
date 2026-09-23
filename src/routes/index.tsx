@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ScanLine, Target, ShieldAlert, Navigation } from "lucide-react";
+import { ScanLine, Target, ShieldAlert, Navigation, Radio, SlidersHorizontal } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
 
@@ -27,59 +27,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-/* ── Static sonar preview drawn on a canvas ──────────────────── */
-function SonarPreviewCanvas() {
-  const ref = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const w = canvas.width;
-    const h = canvas.height;
-
-    let s = 42317;
-    const rand = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-
-    const img = ctx.createImageData(w, h);
-    for (let y = 0; y < h; y++) {
-      const nadir = Math.exp(-(((y - h / 2) / (h * 0.014)) ** 2));
-      for (let x = 0; x < w; x++) {
-        const band = 0.5 + 0.5 * Math.sin(x * 0.007 + y * 0.024);
-        const grain = rand();
-        let v = 34 + band * 42 + grain * 65;
-        v -= nadir * 26;
-        v += Math.exp(-(((x - w * 0.65) / (w * 0.08)) ** 2)) * 28;
-        const c = Math.max(0, Math.min(255, v));
-        const i = (y * w + x) * 4;
-        img.data[i]     = c;
-        img.data[i + 1] = c + 1;
-        img.data[i + 2] = c + 3;
-        img.data[i + 3] = 255;
-      }
-    }
-    ctx.putImageData(img, 0, 0);
-  }, []);
-
-  return (
-    <canvas
-      ref={ref}
-      width={720}
-      height={420}
-      className="block w-full"
-      style={{ display: "block" }}
-    />
-  );
-}
-
-/* Static hardcoded bounding boxes for the hero preview — strict semantic colors */
-const PREVIEW_BOXES = [
-  { label: "shipwreck", conf: 94, x: 0.58, y: 0.28, w: 0.20, h: 0.22, color: "#2563A6", dashed: false },
-  { label: "mine",      conf: 78, x: 0.31, y: 0.52, w: 0.10, h: 0.14, color: "#B3261E", dashed: false },
-  { label: "anomaly",   conf: 88, x: 0.76, y: 0.60, w: 0.11, h: 0.16, color: "#5B5F7A", dashed: true },
-] as const;
-
+/* ── Authentic Dataset Sonar Preview Panel ───────────────────── */
 function SonarPreviewPanel() {
   return (
     <div
@@ -90,86 +38,44 @@ function SonarPreviewPanel() {
         background: "var(--bg-surface-sunken)",
       }}
     >
-      <div className="relative">
-        <SonarPreviewCanvas />
-
-        {/* Center nadir line */}
-        <div
-          className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-px opacity-40"
-          style={{ borderTop: "1px dashed var(--border-strong)" }}
+      <div className="relative overflow-hidden bg-black aspect-[16/10] sm:aspect-[720/420]">
+        {/* Actual Sonar Image from Dataset */}
+        <img
+          src="/sonar/crops/000002_raw.png"
+          alt="Side-scan sonar acoustic survey frame 000002"
+          className="w-full h-full object-cover filter contrast-105 select-none"
         />
 
-        {/* Bounding box overlays */}
-        <div className="absolute inset-0">
-          {PREVIEW_BOXES.map((b) => (
-            <div
-              key={b.label}
-              className="absolute"
-              style={{
-                left: `${b.x * 100}%`,
-                top: `${b.y * 100}%`,
-                width: `${b.w * 100}%`,
-                height: `${b.h * 100}%`,
-                border: `1.5px ${b.dashed ? "dashed" : "solid"} ${b.color}`,
-                backgroundColor: `${b.color}20`,
-              }}
-            >
-              <span
-                className="absolute -top-[19px] left-0 whitespace-nowrap px-1.5 py-0.5"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.03em",
-                  background: b.color,
-                  color: "#FFFFFF",
-                  borderRadius: 2,
-                }}
-              >
-                {b.label} {b.conf}%
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Scanning line sweep */}
-        <div
-          className="scan-line pointer-events-none absolute left-0 right-0 z-10"
-          style={{
-            height: 2,
-            background: "linear-gradient(90deg, transparent 0%, var(--accent-primary) 50%, transparent 100%)",
-            opacity: 0.8,
-          }}
-        />
+        {/* Sweeping Sonar Beam Line Animation */}
+        <div className="sonar-beam-sweep pointer-events-none" />
       </div>
 
-      {/* Telemetry status bar — distinct cells with fixed FP color */}
+      {/* Telemetry status bar */}
       <div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-px text-[10px] font-mono"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-px text-[9.5px] sm:text-[10px] font-mono"
         style={{
           borderTop: "1px solid var(--border-default)",
           background: "var(--border-default)",
         }}
       >
-        <div className="px-3 py-2 flex flex-col justify-center" style={{ background: "var(--bg-surface)" }}>
+        <div className="px-2.5 sm:px-3 py-2 flex flex-col justify-center min-w-0" style={{ background: "var(--bg-surface)" }}>
           <span style={{ fontSize: 9, letterSpacing: "0.04em", color: "var(--text-tertiary)", textTransform: "uppercase" }}>Frame ID</span>
-          <span className="truncate font-semibold" style={{ color: "var(--text-primary)", marginTop: 1 }}>SSS-GOA-04A</span>
+          <span className="truncate font-semibold" style={{ color: "var(--text-primary)", marginTop: 1 }}>SSS-000002</span>
         </div>
-        <div className="px-3 py-2 flex flex-col justify-center" style={{ background: "var(--bg-surface)" }}>
+        <div className="px-2.5 sm:px-3 py-2 flex flex-col justify-center min-w-0" style={{ background: "var(--bg-surface)" }}>
           <span style={{ fontSize: 9, letterSpacing: "0.04em", color: "var(--text-tertiary)", textTransform: "uppercase" }}>Position</span>
-          <span style={{ color: "var(--text-secondary)", marginTop: 1 }}>15.3812°N · 73.8014°E</span>
+          <span className="truncate" style={{ color: "var(--text-secondary)", marginTop: 1 }}>09.1452°N · 79.2148°E</span>
         </div>
-        <div className="px-3 py-2 flex flex-col justify-center" style={{ background: "var(--bg-surface)" }}>
+        <div className="px-2.5 sm:px-3 py-2 flex flex-col justify-center min-w-0" style={{ background: "var(--bg-surface)" }}>
           <span style={{ fontSize: 9, letterSpacing: "0.04em", color: "var(--text-tertiary)", textTransform: "uppercase" }}>Latency</span>
           <span className="font-semibold" style={{ color: "var(--accent-primary)", marginTop: 1 }}>312 ms</span>
         </div>
-        {/* Recolor FP stat with state-muted-meta per Section 3 */}
-        <div className="px-3 py-2 flex flex-col justify-center" style={{ background: "var(--bg-surface)" }}>
+        <div className="px-2.5 sm:px-3 py-2 flex flex-col justify-center min-w-0" style={{ background: "var(--bg-surface)" }}>
           <span style={{ fontSize: 9, letterSpacing: "0.04em", color: "var(--text-tertiary)", textTransform: "uppercase" }}>Filtered Targets</span>
           <span className="truncate font-semibold" style={{ marginTop: 1 }}>
-            <span style={{ color: "var(--state-classified-benign)" }}>3 verified</span>
+            <span style={{ color: "var(--state-classified-benign)" }}>1 verified</span>
             <span style={{ color: "var(--text-tertiary)" }}> · </span>
-            <span style={{ color: "var(--state-muted-meta)" }}>8 FP (vs 140 Naïve)</span>
+            <span style={{ color: "var(--state-muted-meta)" }}>8 FP</span>
           </span>
         </div>
       </div>
@@ -312,7 +218,7 @@ function Home() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry && entry.isIntersecting) {
           setCapabilitiesInView(true);
           observer.unobserve(entry.target);
         }
@@ -328,20 +234,20 @@ function Home() {
     <div className="min-h-screen gradient-mesh">
       <SiteHeader />
 
-      {/* ── Hero ────────────────────────────────────────────── */}
+      {/* ── Fold 1: Upper Fold (Hero with Copy & Dataset Image) ── */}
       <section
         className="relative overflow-hidden grid-field"
         style={{ borderBottom: "1px solid var(--border-default)" }}
       >
-        <div className="relative mx-auto max-w-[1400px] px-6 py-12 md:py-16">
-          <div className="grid items-center gap-12 md:grid-cols-2">
+        <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 py-10 md:py-16">
+          <div className="grid items-center gap-8 md:gap-12 md:grid-cols-2">
             {/* Left: copy */}
             <div className="fade-up">
               <p className="eyebrow">Acoustic survey intelligence · MoES SIH Project</p>
 
               <h1
                 className="mt-2.5 leading-tight tracking-tight fade-up"
-                style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 700, color: "var(--text-primary)" }}
+                style={{ fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 700, color: "var(--text-primary)" }}
               >
                 Seabed contacts resolved before the survey ends.
               </h1>
@@ -352,10 +258,10 @@ function Home() {
                 the acoustic clutter that fills every survey run.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3 fade-up stagger-3">
+              <div className="mt-8 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 fade-up stagger-3">
                 <Link
                   to="/surveys"
-                  className="inline-flex h-10 items-center gap-2 px-5 transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
+                  className="inline-flex h-10 items-center justify-center gap-2 px-5 transition-opacity hover:opacity-90 cursor-pointer shadow-xs w-full sm:w-auto text-center"
                   style={{
                     borderRadius: "var(--radius)",
                     background: "var(--accent-primary)",
@@ -364,11 +270,12 @@ function Home() {
                     fontWeight: 600,
                   }}
                 >
+                  <Radio size={15} />
                   Open analysis console
                 </Link>
-                <Link
-                  to="/metrics"
-                  className="inline-flex h-10 items-center gap-2 px-5 transition-colors hover:border-[var(--border-strong)] cursor-pointer"
+                <a
+                  href="#model-evaluation"
+                  className="inline-flex h-10 items-center justify-center gap-2 px-5 transition-colors hover:border-[var(--border-strong)] cursor-pointer w-full sm:w-auto text-center"
                   style={{
                     borderRadius: "var(--radius)",
                     border: "1px solid var(--border-default)",
@@ -378,8 +285,9 @@ function Home() {
                     fontWeight: 500,
                   }}
                 >
+                  <SlidersHorizontal size={14} />
                   View model performance
-                </Link>
+                </a>
               </div>
 
               {/* Status badge */}
@@ -388,8 +296,8 @@ function Home() {
               </p>
             </div>
 
-            {/* Right: sonar product preview with ambient hero glow */}
-            <div className="fade-up stagger-2 relative">
+            {/* Right: sonar product preview with actual dataset image and animated HUD */}
+            <div className="fade-up stagger-2 relative overflow-hidden rounded-[var(--radius)]">
               <div className="hero-glow -top-24 -right-16" aria-hidden="true" />
               <SonarPreviewPanel />
             </div>
@@ -397,15 +305,15 @@ function Home() {
         </div>
       </section>
 
-      {/* ── Benchmark Detection Performance ──────────────────── */}
-      <section className="mx-auto max-w-[1400px] px-6 pt-10">
+      {/* ── Fold 2: Mid Fold (Model Evaluation Performance Metrics) ── */}
+      <section id="model-evaluation" className="mx-auto max-w-[1400px] px-4 sm:px-6 py-8 sm:py-12">
         <DetectionPerformance />
       </section>
 
-      {/* ── Capabilities (Structured 4-card Grid with Visual Anchors) ── */}
+      {/* ── Fold 3: Last Fold (Capabilities) ── */}
       <section
         ref={capabilitiesRef}
-        className={`mx-auto max-w-[1400px] px-6 py-16 scroll-reveal ${capabilitiesInView ? "in-view" : ""}`}
+        className={`mx-auto max-w-[1400px] px-4 sm:px-6 py-10 sm:py-16 scroll-reveal ${capabilitiesInView ? "in-view" : ""}`}
       >
         <div className="mb-8">
           <h2
@@ -467,7 +375,7 @@ function Home() {
       {/* ── Footer ───────────────────────────────────────────── */}
       <footer style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
         <div
-          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 py-4"
+          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-4"
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Operational Survey Platform</span>

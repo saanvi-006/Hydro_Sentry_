@@ -71,22 +71,22 @@ export function DetectionPerformance({
         </span>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {EVALUATION_METRICS.map((m) => (
           <div
             key={m.label}
-            className="flex flex-col justify-between p-3.5 rounded"
+            className="flex flex-col justify-between p-3.5 rounded min-w-0"
             style={{
               background: "var(--bg-surface-sunken)",
               border: "1px solid var(--border-default)",
             }}
           >
-            <div className="flex items-start justify-between gap-1">
+            <div className="flex flex-wrap items-baseline justify-between gap-1.5">
               <span
                 className="font-bold tracking-tight"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: compact ? 24 : 30,
+                  fontSize: compact ? 22 : "clamp(22px, 3.5vw, 28px)",
                   color: "var(--text-primary)",
                   lineHeight: 1.1,
                 }}
@@ -95,7 +95,7 @@ export function DetectionPerformance({
               </span>
               {m.badge && (
                 <span
-                  className="font-mono text-[8.5px] font-semibold px-1.5 py-0.5 rounded shrink-0"
+                  className="font-mono text-[8.5px] font-semibold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap"
                   style={{
                     background: "color-mix(in srgb, var(--accent-primary) 12%, transparent)",
                     border: "1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)",

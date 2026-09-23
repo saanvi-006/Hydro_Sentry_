@@ -198,10 +198,12 @@ export async function exportPdf(survey: SurveyRecord): Promise<void> {
   doc.setFontSize(8.5);
   doc.setTextColor(74, 85, 104);
 
-  const regionInfo = survey.region ? `Region: ${survey.region}` : "Region: Not specified";
+  const locName = survey.locationName || survey.region || "Unspecified";
+  const coordsStr = survey.location ? `${survey.location.lat.toFixed(5)}°, ${survey.location.lon.toFixed(5)}°` : null;
+  const locationInfo = coordsStr ? `Location: ${locName} (${coordsStr})` : `Location: ${locName}`;
   const dateInfo = `Survey Timestamp: ${formatDateTime(survey.timestamp)}`;
   const frameInfo = `Image ID: ${survey.result.image_id}`;
-  doc.text(`${regionInfo}   ·   ${dateInfo}   ·   ${frameInfo}`, margin, y);
+  doc.text(`${locationInfo}   ·   ${dateInfo}   ·   ${frameInfo}`, margin, y);
 
   // ── 3. Summary Statistics Cards ─────────────────────────────────────
   y += 6;
@@ -237,6 +239,12 @@ export async function exportPdf(survey: SurveyRecord): Promise<void> {
 
   // ── 4. Survey & Detection Parameters (Actual Backend Data) ──────────
   const paramRows = [
+    [
+      { content: "Location / Sector:", styles: { fontStyle: "bold" as const, textColor: [27, 58, 92] } },
+      survey.locationName || survey.region || "Unspecified",
+      { content: "GPS Coordinates:", styles: { fontStyle: "bold" as const, textColor: [27, 58, 92] } },
+      survey.location ? `${survey.location.lat.toFixed(5)}°, ${survey.location.lon.toFixed(5)}°` : "Not georeferenced",
+    ],
     [
       { content: "Frame ID:", styles: { fontStyle: "bold" as const, textColor: [27, 58, 92] } },
       survey.result.image_id,

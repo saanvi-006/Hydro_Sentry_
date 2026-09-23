@@ -6,9 +6,10 @@ import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
 import { isLiveMode, getAnnotatedImageUrl } from "@/services/detection";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, MapPin } from "lucide-react";
 import { exportPdf } from "@/services/report/pdfExport";
 import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
+import { TrackMap } from "@/components/dashboard/TrackMap";
 
 // Search params schema (TanStack Router v1)
 export const Route = createFileRoute("/metrics")({
@@ -44,6 +45,8 @@ function Reports() {
   const navigate = useNavigate();
   const { id } = Route.useSearch();
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [enhanced, setEnhanced] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   async function handleExportPdf(s: SurveyRecord) {
     setGeneratingPdf(true);
@@ -120,7 +123,7 @@ function Reports() {
               </div>
 
               {/* Survey selector dropdown */}
-              <div className="flex flex-wrap items-center gap-2 mt-0.5">
+              <div className="flex flex-wrap items-center gap-2 mt-0.5 w-full sm:w-auto">
                 <label
                   htmlFor="survey-picker"
                   style={{
@@ -139,6 +142,7 @@ function Reports() {
                   onChange={(e) => {
                     void navigate({ to: "/metrics", search: { id: e.target.value } });
                   }}
+                  className="w-full sm:w-auto max-w-full sm:max-w-[360px]"
                   style={{
                     background: "var(--bg-surface-sunken)",
                     border: "1px solid var(--border-default)",
@@ -150,7 +154,6 @@ function Reports() {
                     color: "var(--text-primary)",
                     outline: "none",
                     cursor: "pointer",
-                    maxWidth: 360,
                   }}
                 >
                   {allSurveys.map((s) => (
@@ -161,18 +164,50 @@ function Reports() {
                 </select>
               </div>
 
-              <p className="text-[12px]" style={{ color: "var(--text-secondary)" }}>
-                {survey.region ?? "Region not specified"} · {formatTs(survey.timestamp)}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]" style={{ color: "var(--text-secondary)" }}>
+                <span className="flex items-center gap-1 font-medium" style={{ color: "var(--text-primary)" }}>
+                  <MapPin size={13} className="text-[var(--accent-primary)] shrink-0" />
+                  <span>{survey.locationName || survey.region || "Unspecified Location"}</span>
+                </span>
+                {survey.location && (
+                  <span
+                    className="font-mono text-[11px] px-2 py-0.5 rounded"
+                    style={{
+                      background: "var(--bg-surface-sunken)",
+                      border: "1px solid var(--border-default)",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    {survey.location.lat.toFixed(5)}°, {survey.location.lon.toFixed(5)}°
+                  </span>
+                )}
+                <span className="text-[var(--text-tertiary)]">·</span>
+                <span>{formatTs(survey.timestamp)}</span>
+              </div>
             </div>
 
-            {/* Export button */}
-            <div className="flex items-center self-end sm:self-auto">
+            {/* Header actions: Tactical Map jump + Export PDF */}
+            <div className="flex flex-wrap items-center w-full sm:w-auto justify-end gap-2">
+              <a
+                href="#tactical-map"
+                className="h-9 px-3.5 inline-flex items-center gap-1.5 font-semibold transition-opacity hover:opacity-85 cursor-pointer w-full sm:w-auto justify-center"
+                style={{
+                  borderRadius: "var(--radius)",
+                  background: "var(--bg-surface-sunken)",
+                  border: "1px solid var(--border-default)",
+                  color: "var(--text-primary)",
+                  fontSize: 12,
+                  fontFamily: "var(--font-sans)",
+                }}
+              >
+                <MapPin size={13} strokeWidth={2} />
+                Tactical Map ↓
+              </a>
               <button
                 type="button"
                 disabled={generatingPdf}
                 onClick={() => void handleExportPdf(survey)}
-                className="h-9 px-4 font-semibold transition-all cursor-pointer hover:opacity-90 disabled:opacity-60 flex items-center gap-2"
+                className="h-9 px-4 font-semibold transition-all cursor-pointer hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 w-full sm:w-auto"
                 style={{
                   borderRadius: "var(--radius)",
                   background: "var(--accent-primary)",
@@ -206,7 +241,7 @@ function Reports() {
           ].map((m) => (
             <div
               key={m.label}
-              className="flex items-center gap-2.5 px-3.5 py-2"
+              className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3.5 py-2 min-w-0"
               style={{
                 background: "var(--bg-surface)",
                 border: "1px solid var(--border-default)",
@@ -217,7 +252,7 @@ function Reports() {
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 22,
+                  fontSize: "clamp(18px, 3.5vw, 22px)",
                   fontWeight: 700,
                   color: m.color,
                   lineHeight: 1,
@@ -227,6 +262,7 @@ function Reports() {
                 {m.value}
               </span>
               <span
+                className="truncate"
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: 9.5,
@@ -249,12 +285,17 @@ function Reports() {
         >
           {/* Left — Findings table */}
           <div className="flex flex-col min-h-0">
-            <h2
-              className="shrink-0 mb-2 text-[11px] font-semibold uppercase tracking-wider font-mono"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Findings
-            </h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2
+                className="text-[11px] font-semibold uppercase tracking-wider font-mono"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Findings ({result.detections.length})
+              </h2>
+              <span className="sm:hidden font-mono text-[9.5px] text-[var(--text-tertiary)]">
+                ← swipe to view columns →
+              </span>
+            </div>
             {result.detections.length === 0 ? (
               <p
                 className="p-4"
@@ -271,7 +312,7 @@ function Reports() {
               </p>
             ) : (
               <div
-                className="flex-1 overflow-y-auto"
+                className="flex-1 overflow-auto table-scroll-container"
                 style={{
                   background: "var(--bg-surface)",
                   border: "1px solid var(--border-default)",
@@ -331,7 +372,12 @@ function Reports() {
                       return (
                         <tr
                           key={d.id}
-                          style={{ borderBottom: i < result.detections.length - 1 ? "1px solid var(--border-default)" : "none" }}
+                          onClick={() => setSelectedId(d.id)}
+                          className="cursor-pointer transition-colors hover:bg-[var(--bg-surface-sunken)]"
+                          style={{
+                            borderBottom: i < result.detections.length - 1 ? "1px solid var(--border-default)" : "none",
+                            background: selectedId === d.id ? "rgba(37, 99, 235, 0.08)" : undefined,
+                          }}
                         >
                           <td className="px-3 py-2.5">
                             <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text-primary)" }}>
@@ -416,34 +462,71 @@ function Reports() {
 
           {/* Right — Sonar canvas + survey metadata */}
           <div className="flex flex-col gap-3 min-h-0">
-            {result.detections.length > 0 && (
-              <div className="flex flex-col flex-1 min-h-0">
+            <div className="flex flex-col flex-1 min-h-0">
+              <div className="flex items-center justify-between mb-2">
                 <h2
-                  className="shrink-0 mb-2 text-[11px] font-semibold uppercase tracking-wider font-mono"
+                  className="shrink-0 text-[11px] font-semibold uppercase tracking-wider font-mono"
                   style={{ color: "var(--text-secondary)" }}
                 >
                   Target Evidence — Sonar Frame
                 </h2>
-                <div
-                  className="flex-1 p-3 overflow-hidden flex flex-col justify-center"
-                  style={{
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border-default)",
-                    borderRadius: "var(--radius)",
-                    boxShadow: "var(--shadow-card)",
-                  }}
-                >
-                  <SonarCanvas
-                    detections={result.detections}
-                    enhanced={true}
-                    seed={result.image_id}
-                    selectedId={null}
-                    onSelect={() => {}}
-                    imageUrl={survey.imageUrl || (isLiveMode() ? getAnnotatedImageUrl(result.image_id) : undefined)}
-                  />
+                <div className="flex items-center gap-1.5">
+                  {(["Raw", "Processed"] as const).map((label, i) => {
+                    const on = enhanced === (i === 1);
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setEnhanced(i === 1)}
+                        className="transition-colors cursor-pointer"
+                        style={{
+                          borderRadius: "var(--radius-sm)",
+                          padding: "2px 8px",
+                          fontSize: 11,
+                          fontFamily: "var(--font-mono)",
+                          fontWeight: on ? 600 : 500,
+                          background: on ? "var(--accent-primary)" : "var(--bg-surface-sunken)",
+                          color: on ? "var(--accent-primary-fg)" : "var(--text-secondary)",
+                          border: on ? "1px solid var(--accent-primary)" : "1px solid var(--border-default)",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+              <div
+                className="flex-1 p-3 overflow-hidden flex flex-col justify-center"
+                style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border-default)",
+                  borderRadius: "var(--radius)",
+                  boxShadow: "var(--shadow-card)",
+                }}
+              >
+                <SonarCanvas
+                  detections={result.detections}
+                  enhanced={enhanced}
+                  seed={result.image_id}
+                  selectedId={selectedId}
+                  onSelect={setSelectedId}
+                  imageUrl={survey.imageUrl || (isLiveMode() ? getAnnotatedImageUrl(result.image_id) : undefined)}
+                />
+                {result.detections.length === 0 && (
+                  <p
+                    className="mt-2.5 text-center"
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      color: "var(--state-classified-benign)",
+                    }}
+                  >
+                    ✓ Baseline verified — zero contacts detected above operational threshold.
+                  </p>
+                )}
+              </div>
+            </div>
 
             {/* Survey metadata key-value panel */}
             <div
@@ -460,7 +543,8 @@ function Reports() {
                   { label: "Frame ID",         value: result.image_id },
                   { label: "Inference",        value: `${result.processing_time_ms} ms` },
                   { label: "YOLO Conf. Floor", value: `${(survey.threshold * 100).toFixed(0)}% (0.25)` },
-                  { label: "Region",           value: survey.region ?? "Not specified" },
+                  { label: "Location",         value: survey.locationName || survey.region || "Not specified" },
+                  { label: "Coordinates",      value: survey.location ? `${survey.location.lat.toFixed(5)}°, ${survey.location.lon.toFixed(5)}°` : "Not georeferenced" },
                   { label: "Description",      value: survey.description ?? "Not provided" },
                 ].map(({ label, value }) => (
                   <div key={label}>
@@ -476,11 +560,79 @@ function Reports() {
             </div>
           </div>
         </div>
+
+        {/* ── Full-Width Tactical Map Console ────────────────── */}
+        <section
+          id="tactical-map"
+          className="shrink-0 w-full mt-2"
+        >
+          <div
+            className="flex flex-col overflow-hidden"
+            style={{
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-default)",
+              borderRadius: "var(--radius)",
+              boxShadow: "var(--shadow-card)",
+            }}
+          >
+            {/* Header */}
+            <div
+              className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+              style={{
+                borderBottom: "1px solid var(--border-default)",
+                background: "var(--bg-surface-sunken)",
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  TACTICAL GEOSPATIAL RECONSTRUCTION // WGS-84 BATHYMETRY
+                </span>
+                <span
+                  className="hidden sm:inline font-mono text-[10px] px-1.5 py-0.5 rounded"
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border-strong)",
+                    color: "var(--text-tertiary)",
+                  }}
+                >
+                  {survey.locationName || survey.region || "SURVEY SECTOR"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-[11px] font-mono" style={{ color: "var(--text-secondary)" }}>
+                <span>
+                  PLOTTED TARGETS: <strong style={{ color: "var(--accent-primary)" }}>{result.detections.length}</strong>
+                </span>
+              </div>
+            </div>
+
+            {/* Map canvas */}
+            <TrackMap
+              detections={result.detections}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              height={380}
+              showContactList={true}
+              region={survey.locationName || survey.region}
+              surveyLocation={survey.location}
+              surveyName={survey.name}
+            />
+          </div>
+        </section>
       </main>
 
       <footer className="shrink-0" style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
         <div
-          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 py-3"
+          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3"
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Survey Report</span>

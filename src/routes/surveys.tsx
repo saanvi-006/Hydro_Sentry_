@@ -1,14 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { UploadCloud, ArrowLeft, Play, AlertTriangle, Loader2 } from "lucide-react";
+import { UploadCloud, ArrowLeft, Play, AlertTriangle, Loader2, MapPin, Navigation, Crosshair, CheckCircle2 } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SonarCanvas } from "@/components/dashboard/SonarCanvas";
 import { DetectionCard } from "@/components/dashboard/DetectionCard";
-import { TrackMap } from "@/components/dashboard/TrackMap";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { surveyProvider } from "@/services/survey";
+import { surveyProvider, reverseGeocode, getLocationSector } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
 import { isLiveMode, setLiveMode, liveProvider, getAnnotatedImageUrl } from "@/services/detection";
 
@@ -316,7 +315,7 @@ function Gateway({
             </p>
             <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, marginTop: 6 }}>
               {surveys.length > 0
-                ? `Resume: ${surveys[0]!.name} (${surveys[0]!.result.summary.total_detections} contacts flagged in ${surveys[0]!.region ?? "active region"}).`
+                ? `Resume: ${surveys[0]!.name} (${surveys[0]!.result.summary.total_detections} contacts flagged in ${surveys[0]!.locationName || surveys[0]!.region || "active region"}).`
                 : "No active surveys run yet. Start a new analysis to create the first survey record."}
             </p>
           </div>
@@ -358,7 +357,7 @@ function Gateway({
                 key={s.id}
                 type="button"
                 onClick={() => onOpen(s)}
-                className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-[var(--bg-surface-sunken)]/70 cursor-pointer"
+                className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-5 py-3.5 sm:py-4 text-left transition-colors hover:bg-[var(--bg-surface-sunken)]/70 cursor-pointer"
                 style={{
                   borderBottom: i < surveys.length - 1 ? "1px solid var(--border-default)" : "none",
                 }}
@@ -377,11 +376,11 @@ function Gateway({
                       marginTop: 3,
                     }}
                   >
-                    {s.region ?? "No region"} · {formatTs(s.timestamp)} · {s.result.summary.total_detections} detections · Frame: {s.result.image_id}
+                    {s.locationName || s.region || "No region"} · {formatTs(s.timestamp)} · {s.result.summary.total_detections} detections · Frame: {s.result.image_id}
                   </p>
                 </div>
                 <span
-                  className="inline-flex items-center gap-1 font-mono text-[12px] font-semibold px-3 py-1 rounded shrink-0"
+                  className="inline-flex items-center gap-1 font-mono text-[12px] font-semibold px-3 py-1 rounded shrink-0 self-end sm:self-auto"
                   style={{
                     background: "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
                     border: "1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)",
@@ -408,20 +407,89 @@ function SetupForm({
   onSubmit: (params: {
     name: string;
     file: File | null;
-    region: string;
+    locationName: string;
+    coordinates: string;
     description: string;
     threshold: number;
   }) => void;
 }) {
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [region, setRegion] = useState("");
+  const [locationName, setLocationName] = useState("");
+  const [coordinates, setCoordinates] = useState("");
   const [description, setDescription] = useState("");
   const [threshold, setThreshold] = useState(0.25);
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = name.trim().length > 0 && file !== null;
+  // GPS geolocation state
+  const [gpsStatus, setGpsStatus] = useState<"idle" | "requesting" | "locked" | "error" | "unsupported">("idle");
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [gpsErrorMsg, setGpsErrorMsg] = useState<string | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const resolveLocationFromCoords = useCallback(async (lat: number, lon: number, overwrite = false) => {
+    setIsGeocoding(true);
+    try {
+      const resolved = await reverseGeocode(lat, lon);
+      if (resolved) {
+        setLocationName((prev) => (!prev.trim() || overwrite ? resolved : prev));
+      }
+    } catch {
+      const sector = getLocationSector(lat, lon);
+      setLocationName((prev) => (!prev.trim() || overwrite ? sector : prev));
+    } finally {
+      setIsGeocoding(false);
+    }
+  }, []);
+
+  const requestGpsLocation = useCallback(() => {
+    if (typeof window === "undefined" || !("geolocation" in navigator)) {
+      setGpsStatus("unsupported");
+      setGpsErrorMsg("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setGpsStatus("requesting");
+    setGpsErrorMsg(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = Number(pos.coords.latitude.toFixed(6));
+        const lon = Number(pos.coords.longitude.toFixed(6));
+        const acc = Math.round(pos.coords.accuracy);
+        setGpsAccuracy(acc);
+        setGpsStatus("locked");
+        setCoordinates(`${lat}, ${lon}`);
+        void resolveLocationFromCoords(lat, lon, true);
+      },
+      (err) => {
+        setGpsStatus("error");
+        let msg = "Could not acquire GPS position.";
+        if (err.code === err.PERMISSION_DENIED) {
+          msg = "Location permission denied. Please allow location access or type coordinates manually.";
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          msg = "GPS position unavailable. Please enter coordinates manually.";
+        } else if (err.code === err.TIMEOUT) {
+          msg = "GPS acquisition timed out. Please try again or enter coordinates manually.";
+        }
+        setGpsErrorMsg(msg);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }, [resolveLocationFromCoords]);
+
+  // Request GPS fix automatically on mount
+  useEffect(() => {
+    requestGpsLocation();
+  }, [requestGpsLocation]);
+
+  // Coordinates or Location Name is required along with name and file
+  const canSubmit = name.trim().length > 0 && file !== null && (coordinates.trim().length > 0 || locationName.trim().length > 0);
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
@@ -563,31 +631,162 @@ function SetupForm({
           </label>
         </div>
 
-        {/* Region (optional) */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="eyebrow" style={{ color: "var(--text-secondary)" }}>
-              Region / Coordinates <span style={{ color: "var(--text-tertiary)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span>
-            </label>
-            <span className="font-mono text-[10px] text-[var(--text-tertiary)]">
-              Map auto-centers to this location
-            </span>
+        {/* Survey Coordinates & Location Name (REQUIRED) */}
+        <div
+          className="p-3.5 sm:p-4 rounded-md space-y-3.5"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-default)",
+          }}
+        >
+          {/* GPS Coordinates */}
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+              <label className="eyebrow" style={{ color: "var(--text-secondary)" }}>
+                GPS Coordinates (lat, lon) <span style={{ color: "var(--state-known-confirmed)" }}>*</span>
+              </label>
+              <button
+                type="button"
+                onClick={requestGpsLocation}
+                disabled={gpsStatus === "requesting"}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono font-semibold transition-all cursor-pointer hover:opacity-90 disabled:opacity-50"
+                style={{
+                  background:
+                    gpsStatus === "locked"
+                      ? "rgba(16, 185, 129, 0.12)"
+                      : gpsStatus === "requesting"
+                      ? "rgba(37, 99, 235, 0.12)"
+                      : "var(--bg-surface-sunken)",
+                  border: `1px solid ${
+                    gpsStatus === "locked"
+                      ? "#10B981"
+                      : gpsStatus === "requesting"
+                      ? "var(--accent-primary)"
+                      : "var(--border-default)"
+                  }`,
+                  color: gpsStatus === "locked" ? "#10B981" : "var(--text-primary)",
+                }}
+                title="Acquire current device GPS latitude and longitude"
+              >
+                {gpsStatus === "requesting" ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin text-[var(--accent-primary)]" />
+                    <span>Acquiring GPS Fix…</span>
+                  </>
+                ) : gpsStatus === "locked" ? (
+                  <>
+                    <Navigation className="h-3 w-3 text-emerald-500 fill-emerald-500/20" />
+                    <span>GPS Locked (±{gpsAccuracy}m) · Refresh</span>
+                  </>
+                ) : (
+                  <>
+                    <Crosshair className="h-3 w-3 text-[var(--accent-primary)]" />
+                    <span>Use Current GPS Location</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                value={coordinates}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCoordinates(val);
+                  if (gpsStatus === "locked") setGpsStatus("idle");
+                  const parts = val.split(/[\s,;/]+/).map((s) => parseFloat(s)).filter((n) => !isNaN(n));
+                  if (parts.length >= 2 && Math.abs(parts[0]!) <= 90 && Math.abs(parts[1]!) <= 180) {
+                    void resolveLocationFromCoords(parts[0]!, parts[1]!, false);
+                  }
+                }}
+                placeholder="e.g. 15.412435, 73.819281"
+                className="w-full pl-3 pr-9 py-2 outline-none transition-all"
+                style={{
+                  background: "var(--bg-surface-sunken)",
+                  border: `1px solid ${
+                    coordinates.trim() ? "var(--accent-primary)" : "var(--border-default)"
+                  }`,
+                  borderRadius: "var(--radius)",
+                  fontSize: 13,
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              />
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Navigation
+                  className="h-4 w-4"
+                  style={{ color: coordinates.trim() ? "var(--accent-primary)" : "var(--text-tertiary)" }}
+                />
+              </div>
+            </div>
+
+            {/* GPS Feedback */}
+            <div className="mt-1.5 flex flex-col gap-1">
+              {gpsStatus === "locked" && (
+                <p className="text-[11px] font-mono text-emerald-500 flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                  Live device GPS locked. Coordinates mapped for georeferencing &amp; intelligence reports.
+                </p>
+              )}
+              {gpsStatus === "error" && gpsErrorMsg && (
+                <p className="text-[11px] font-mono text-amber-500 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  {gpsErrorMsg}
+                </p>
+              )}
+              {gpsStatus === "requesting" && (
+                <p className="text-[11px] font-mono text-[var(--accent-primary)] flex items-center gap-1.5">
+                  <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+                  Requesting high-accuracy GPS coordinates from your device…
+                </p>
+              )}
+            </div>
           </div>
-          <input
-            type="text"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            placeholder="e.g. Goa Coast, Mumbai Offshore, or lat,lon (15.40, 73.70)"
-            className="w-full px-3 py-2 outline-none transition-all"
-            style={{
-              background: "var(--bg-surface-sunken)",
-              border: "1px solid var(--border-default)",
-              borderRadius: "var(--radius)",
-              fontSize: 13,
-              color: "var(--text-primary)",
-              fontFamily: "var(--font-sans)",
-            }}
-          />
+
+          {/* Location / Sector Name */}
+          <div>
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <label className="eyebrow" style={{ color: "var(--text-secondary)" }}>
+                Location / Sector Name <span style={{ color: "var(--state-known-confirmed)" }}>*</span>
+              </label>
+              {isGeocoding && (
+                <span className="inline-flex items-center gap-1 font-mono text-[10.5px] text-[var(--accent-primary)]">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Resolving sector name…
+                </span>
+              )}
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+                placeholder="e.g. Panaji, Goa, India or Mumbai Offshore"
+                className="w-full pl-3 pr-9 py-2 outline-none transition-all"
+                style={{
+                  background: "var(--bg-surface-sunken)",
+                  border: `1px solid ${
+                    locationName.trim() ? "var(--accent-primary)" : "var(--border-default)"
+                  }`,
+                  borderRadius: "var(--radius)",
+                  fontSize: 13,
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--font-sans)",
+                }}
+              />
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                <MapPin
+                  className="h-4 w-4"
+                  style={{ color: locationName.trim() ? "var(--accent-primary)" : "var(--text-tertiary)" }}
+                />
+              </div>
+            </div>
+            <p className="mt-1 text-[11px] font-mono text-[var(--text-tertiary)]">
+              Human-readable location displayed in intelligence reports and PDF exports. Auto-populated from GPS reverse geocoding or enter custom sector.
+            </p>
+          </div>
         </div>
 
         {/* Description (optional) */}
@@ -650,7 +849,16 @@ function SetupForm({
           <button
             type="button"
             disabled={!canSubmit}
-            onClick={() => onSubmit({ name: name.trim(), file, region: region.trim(), description: description.trim(), threshold })}
+            onClick={() =>
+              onSubmit({
+                name: name.trim(),
+                file,
+                locationName: locationName.trim(),
+                coordinates: coordinates.trim(),
+                description: description.trim(),
+                threshold,
+              })
+            }
             className="flex-1 h-10 inline-flex items-center justify-center gap-2 font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 cursor-pointer"
             style={{
               borderRadius: "var(--radius)",
@@ -660,7 +868,7 @@ function SetupForm({
             }}
           >
             <Play className="h-3.5 w-3.5" strokeWidth={2} />
-            Analyze
+            Analyze &amp; Map Contacts
           </button>
         </div>
       </div>
@@ -719,7 +927,7 @@ function ResultsWorkspace({
           background: "var(--bg-surface)",
         }}
       >
-        <div className="mx-auto max-w-[1400px] w-full flex flex-wrap items-center justify-between gap-3 px-6 py-2">
+        <div className="mx-auto max-w-[1400px] w-full flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-2">
           {/* Left: back + survey name */}
           <div className="flex items-center gap-3">
             <button
@@ -780,14 +988,17 @@ function ResultsWorkspace({
       </div>
 
       {/* 3-column evidence workspace */}
-      <main className="mx-auto max-w-[1400px] w-full px-6 py-4 grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)_340px] xl:grid-cols-[280px_minmax(0,1fr)_360px] min-h-0">
+      <main className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 py-4 grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)_340px] xl:grid-cols-[280px_minmax(0,1fr)_360px] min-h-0">
         {/* Left — Legend + metadata */}
         <Panel title="Survey Details" className="analysis-col">
           {/* Survey metadata */}
           <div className="space-y-3 text-[12px]">
             {[
               { label: "Survey", value: survey.name },
-              { label: "Region", value: survey.region ?? "Not specified" },
+              { label: "Location", value: survey.locationName || survey.region || "Not specified" },
+              ...(survey.location
+                ? [{ label: "GPS Coordinates", value: `${survey.location.lat.toFixed(5)}°, ${survey.location.lon.toFixed(5)}°` }]
+                : []),
               { label: "Threshold", value: survey.threshold.toFixed(2) },
             ].map(({ label, value }) => (
               <div key={label}>
@@ -865,8 +1076,8 @@ function ResultsWorkspace({
           )}
         </Panel>
 
-        {/* Right — Contact feed + tactical track */}
-        <Panel title="Contact Feed & Tactical Track">
+        {/* Right — Contact feed */}
+        <Panel title="Contact Feed">
           {/* Summary metrics */}
           <div
             className="grid grid-cols-3 gap-px overflow-hidden rounded-[var(--radius)]"
@@ -943,19 +1154,6 @@ function ResultsWorkspace({
               ))
             )}
           </div>
-
-          {/* Tactical track map */}
-          <div className="mt-6 pt-4" style={{ borderTop: "1px solid var(--border-default)" }}>
-            <p className="eyebrow mb-2">Tactical Survey Track</p>
-            <TrackMap
-              detections={result.detections}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-              region={survey.region}
-              surveyLocation={survey.location}
-              surveyName={survey.name}
-            />
-          </div>
         </Panel>
       </main>
     </div>
@@ -985,7 +1183,8 @@ function Dashboard() {
   async function handleSubmit(params: {
     name: string;
     file: File | null;
-    region: string;
+    locationName: string;
+    coordinates: string;
     description: string;
     threshold: number;
   }) {
@@ -995,7 +1194,9 @@ function Dashboard() {
       const record = await surveyProvider.create({
         name: params.name,
         file: params.file,
-        region: params.region || undefined,
+        region: params.locationName || params.coordinates,
+        locationName: params.locationName,
+        coordinates: params.coordinates,
         description: params.description || undefined,
         threshold: params.threshold,
       });
@@ -1064,7 +1265,7 @@ function Dashboard() {
       {/* Footer */}
       <footer className="shrink-0" style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
         <div
-          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 py-3"
+          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3"
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Survey Workspace</span>

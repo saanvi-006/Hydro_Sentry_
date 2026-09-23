@@ -4,7 +4,6 @@ import { MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TrackMap } from "@/components/dashboard/TrackMap";
 import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
-import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
 
@@ -142,7 +141,7 @@ function Overview() {
         ) : (
           <>
             {/* ── Compact metric strip (4 chips, horizontal) ─── */}
-            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {[
                 { label: "Surveys Run",       value: totalSurveys,            color: "var(--accent-primary)" },
                 { label: "Total Detections",  value: totalDetections,         color: "var(--state-classified-benign)" },
@@ -151,7 +150,7 @@ function Overview() {
               ].map((m) => (
                 <div
                   key={m.label}
-                  className="flex items-center gap-3 px-4 py-2.5"
+                  className="flex items-center gap-2.5 sm:gap-3 px-2.5 sm:px-4 py-2 sm:py-2.5 min-w-0"
                   style={{
                     background: "var(--bg-surface)",
                     border: "1px solid var(--border-default)",
@@ -162,7 +161,7 @@ function Overview() {
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 24,
+                      fontSize: "clamp(20px, 3.5vw, 24px)",
                       fontWeight: 700,
                       color: m.color,
                       lineHeight: 1,
@@ -172,14 +171,15 @@ function Overview() {
                     {m.value}
                   </span>
                   <span
+                    className="truncate"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontWeight: 600,
-                      letterSpacing: "0.05em",
+                      letterSpacing: "0.04em",
                       textTransform: "uppercase",
                       color: "var(--text-tertiary)",
-                      lineHeight: 1.3,
+                      lineHeight: 1.25,
                     }}
                   >
                     {m.label}
@@ -187,9 +187,6 @@ function Overview() {
                 </div>
               ))}
             </div>
-
-            {/* ── Detection Performance Benchmark Strip ── */}
-            <DetectionPerformance compact className="shrink-0" />
 
             {/* ── Two-pane area ───────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
@@ -211,7 +208,7 @@ function Overview() {
                 </div>
 
                 <div
-                  className="overflow-hidden"
+                  className="table-scroll-container overflow-x-auto"
                   style={{
                     background: "var(--bg-surface)",
                     border: "1px solid var(--border-default)",
@@ -219,7 +216,7 @@ function Overview() {
                     boxShadow: "var(--shadow-card)",
                   }}
                 >
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left border-collapse min-w-[480px] sm:min-w-0">
                     <thead>
                       <tr
                         style={{
@@ -269,8 +266,8 @@ function Overview() {
                                   {s.name}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-mono text-[var(--text-secondary)]">
-                                <span>{s.region ?? "Not specified"}</span>
+                              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5 text-[11px] font-mono text-[var(--text-secondary)]">
+                                <span>{s.locationName || s.region || "Not specified"}</span>
                                 <span className="text-[var(--text-tertiary)]">·</span>
                                 <span>{formatTs(s.timestamp)}</span>
                                 <span className="text-[var(--text-tertiary)]">·</span>
@@ -369,7 +366,7 @@ function Overview() {
                       {priorityFindings.map((d) => (
                         <div
                           key={`${d.surveyId}-${d.id}`}
-                          className="flex items-center gap-3 px-3 py-2 transition-all hover:shadow-xs min-w-0"
+                          className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 px-3 py-2 transition-all hover:shadow-xs min-w-0"
                           style={{
                             background: "var(--bg-surface)",
                             border: "1px solid var(--border-default)",
@@ -396,7 +393,7 @@ function Overview() {
                             {d.id}
                           </span>
                           <span
-                            className="text-[11px] text-[var(--text-tertiary)] ml-auto whitespace-nowrap"
+                            className="text-[11px] text-[var(--text-tertiary)] sm:ml-auto truncate max-w-[140px] sm:max-w-none"
                             title={d.surveyName}
                           >
                             {d.surveyName.replace("Demo Survey — ", "")}
@@ -563,7 +560,7 @@ function Overview() {
                         onSelect={setSelectedContactId}
                         height={280}
                         showContactList={true}
-                        region={activeSurvey?.region}
+                        region={activeSurvey?.locationName || activeSurvey?.region}
                         surveyLocation={activeSurvey?.location}
                         surveyName={activeSurvey?.name}
                       />
@@ -578,7 +575,7 @@ function Overview() {
 
       <footer className="shrink-0" style={{ borderTop: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
         <div
-          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 py-3"
+          className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3"
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}
         >
           <span>HydroSentry · Survey Dashboard</span>

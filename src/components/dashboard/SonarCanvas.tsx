@@ -65,152 +65,125 @@ function drawSonar(canvas: HTMLCanvasElement, enhanced: boolean, seed: string) {
 }
 
 export function SonarCanvas({ detections, enhanced, seed, selectedId, onSelect, imageUrl }: Props) {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const pair = getSonarPair(seed);
-  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
-    width: pair ? 715 : 1024,
-    height: pair ? 745 : 640,
-  });
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
+  // If user uploaded a custom frame (data URL or blob URL), always prioritize that image
+  const isCustomUpload = Boolean(
+    imageUrl && (imageUrl.startsWith("data:") || imageUrl.startsWith("blob:"))
+  );
+
+  let displaySrc: string | undefined;
+  if (isCustomUpload && imageUrl) {
+    displaySrc = imageUrl;
+  } else if (pair) {
+    displaySrc = enhanced ? pair.processed : pair.raw;
+  } else if (imageUrl) {
+    displaySrc = imageUrl;
+  }
+
+  const hasImage = Boolean(displaySrc && !loadFailed);
+
+  // Fallback procedural canvas rendering
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-
-    // 1. If user uploaded custom image is provided, display it!
-    if (imageUrl) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        const w = img.naturalWidth || 1024;
-        const h = img.naturalHeight || 768;
-        canvas.width = w;
-        canvas.height = h;
-        setDimensions({ width: w, height: h });
-        setImageLoaded(true);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.clearRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-      };
-      img.onerror = () => {
-        if (pair) {
-          loadPair();
-        } else {
-          setImageLoaded(false);
-          drawSonar(canvas, enhanced, seed);
-        }
-      };
-      img.src = imageUrl;
-      return;
+    if (!hasImage && canvasRef.current) {
+      drawSonar(canvasRef.current, enhanced, seed);
     }
+  }, [hasImage, enhanced, seed]);
 
-    // 2. Sample evaluation crops
-    if (pair) {
-      loadPair();
-      return;
-    }
+  // Reset load error if image source changes
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [displaySrc]);
 
-    // 3. Fallback procedural canvas noise
-    setImageLoaded(false);
-    drawSonar(canvas, enhanced, seed);
+  const renderOverlays = () => (
+    <div className="absolute inset-0 pointer-events-none">
+      {detections.map((d) => {
+        const sem    = getContactSemantic(d);
+        const left   = `${d.bbox.x_min * 100}%`;
+        const top    = `${d.bbox.y_min * 100}%`;
+        const width  = `${(d.bbox.x_max - d.bbox.x_min) * 100}%`;
+        const height = `${(d.bbox.y_max - d.bbox.y_min) * 100}%`;
+        const active = selectedId === d.id;
 
-    function loadPair() {
-      if (!pair) return;
-      const src = enhanced ? pair.processed : pair.raw;
-      const img = new Image();
-      img.onload = () => {
-        const w = img.naturalWidth || 715;
-        const h = img.naturalHeight || 745;
-        canvas.width = w;
-        canvas.height = h;
-        setDimensions({ width: w, height: h });
-        setImageLoaded(true);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.clearRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-      };
-      img.onerror = () => {
-        setImageLoaded(false);
-        drawSonar(canvas, enhanced, seed);
-      };
-      img.src = src;
-    }
-  }, [enhanced, seed, pair, imageUrl]);
+        // Confidence-weighted fill and border
+        const borderAlpha = Math.max(0.5, Math.min(1, 0.35 + sem.confidence * 0.65));
+        const fillAlpha   = Math.max(0.08, sem.confidence * 0.22);
+
+        return (
+          <button
+            key={d.id}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(d.id);
+            }}
+            style={{
+              left,
+              top,
+              width,
+              height,
+              borderColor: sem.color,
+              borderStyle: sem.isDashed ? "dashed" : "solid",
+              borderWidth: active ? 2.5 : 1.5,
+              backgroundColor: `color-mix(in srgb, ${sem.color} ${Math.round(fillAlpha * 100)}%, transparent)`,
+              boxShadow: active ? `0 0 0 2px var(--bg-surface), 0 0 0 4px ${sem.color}` : undefined,
+              opacity: borderAlpha,
+            }}
+            className="absolute pointer-events-auto transition-all hover:opacity-100 cursor-pointer"
+          >
+            {/* High-contrast identification tag */}
+            <span
+              className="absolute -top-[19px] left-0 whitespace-nowrap px-1.5 py-0.5"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: "0.03em",
+                backgroundColor: sem.color,
+                color: "#FFFFFF",
+                borderRadius: 2,
+                opacity: sem.badgeOpacity,
+              }}
+            >
+              {sem.shortLabel} {Math.round(sem.confidence * 100)}%
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div
-      className="surface-sunken relative w-full overflow-hidden"
+      className="surface-sunken relative w-full overflow-hidden flex items-center justify-center"
       style={{
         borderRadius: "var(--radius)",
         border: "1px solid var(--border-default)",
         background: "var(--bg-surface-sunken)",
       }}
     >
-      <canvas ref={ref} width={dimensions.width} height={dimensions.height} className="block w-full h-auto" />
-
-      {/* Center nadir track indicator — only when using synthetic fallback */}
-      {!pair && !imageUrl && !imageLoaded && (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-px opacity-40"
-          style={{ borderTop: "1px dashed var(--border-strong)" }}
-        />
-      )}
-
-      {/* Bounding box overlays — only visible in Processed mode */}
-      {enhanced && (
-        <div className="absolute inset-0">
-          {detections.map((d) => {
-            const sem    = getContactSemantic(d);
-            const left   = `${d.bbox.x_min * 100}%`;
-            const top    = `${d.bbox.y_min * 100}%`;
-            const width  = `${(d.bbox.x_max - d.bbox.x_min) * 100}%`;
-            const height = `${(d.bbox.y_max - d.bbox.y_min) * 100}%`;
-            const active = selectedId === d.id;
-
-            // Confidence-weighted fill and border
-            const borderAlpha = Math.max(0.5, Math.min(1, 0.35 + sem.confidence * 0.65));
-            const fillAlpha   = Math.max(0.08, sem.confidence * 0.22);
-
-            return (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => onSelect(d.id)}
-                style={{
-                  left,
-                  top,
-                  width,
-                  height,
-                  borderColor: sem.color,
-                  borderStyle: sem.isDashed ? "dashed" : "solid",
-                  borderWidth: active ? 2.5 : 1.5,
-                  backgroundColor: `color-mix(in srgb, ${sem.color} ${Math.round(fillAlpha * 100)}%, transparent)`,
-                  boxShadow: active ? `0 0 0 2px var(--bg-surface), 0 0 0 4px ${sem.color}` : undefined,
-                  opacity: borderAlpha,
-                }}
-                className="absolute transition-all hover:opacity-100 cursor-pointer"
-              >
-                {/* High-contrast identification tag */}
-                <span
-                  className="absolute -top-[19px] left-0 whitespace-nowrap px-1.5 py-0.5"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.03em",
-                    backgroundColor: sem.color,
-                    color: "#FFFFFF",
-                    borderRadius: 2,
-                    opacity: sem.badgeOpacity,
-                  }}
-                >
-                  {sem.shortLabel} {Math.round(sem.confidence * 100)}%
-                </span>
-              </button>
-            );
-          })}
+      {hasImage ? (
+        <div className="relative w-full">
+          <img
+            src={displaySrc}
+            alt="Sonar Acoustic Frame"
+            onError={() => setLoadFailed(true)}
+            className="block w-full h-auto select-none"
+            draggable={false}
+          />
+          {enhanced && renderOverlays()}
+        </div>
+      ) : (
+        <div className="relative w-full">
+          <canvas ref={canvasRef} width={1024} height={640} className="block w-full h-auto" />
+          {/* Center nadir track indicator — only when using synthetic fallback */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-px opacity-40"
+            style={{ borderTop: "1px dashed var(--border-strong)" }}
+          />
+          {enhanced && renderOverlays()}
         </div>
       )}
     </div>

@@ -153,7 +153,7 @@ export function DetectionCard({
 
         {/* Footer row: operational confidence + coordinates */}
         <div
-          className="mt-3.5 pt-2 flex items-center justify-between"
+          className="mt-3.5 pt-2 flex flex-wrap items-center justify-between gap-1"
           style={{
             borderTop: "1px solid var(--border-default)",
             fontFamily: "var(--font-mono)",
