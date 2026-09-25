@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ScanLine, Target, ShieldAlert, Navigation, Radio, SlidersHorizontal } from "lucide-react";
+import { ScanLine, Target, ShieldAlert, Navigation, Radio, LayoutDashboard } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
 import { useAuthModal } from "@/context/AuthModalContext";
@@ -263,11 +263,11 @@ function Home() {
 
               <div className="mt-8 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 fade-up stagger-3">
                 <Link
-                  to="/surveys"
+                  to="/dashboard"
                   onClick={(e) => {
                     if (!isAuthenticated()) {
                       e.preventDefault();
-                      openLogin("/surveys", "Sign in with operator credentials to open the survey analysis console");
+                      openLogin("/dashboard", "Sign in with operator credentials to access the Mission Dashboard");
                     }
                   }}
                   className="inline-flex h-10 items-center justify-center gap-2 px-5 transition-opacity hover:opacity-90 cursor-pointer shadow-xs w-full sm:w-auto text-center"
@@ -279,12 +279,18 @@ function Home() {
                     fontWeight: 600,
                   }}
                 >
-                  <Radio size={15} />
-                  Open analysis console
+                  <LayoutDashboard size={15} />
+                  Mission Dashboard
                 </Link>
-                <a
-                  href="#model-evaluation"
-                  className="inline-flex h-10 items-center justify-center gap-2 px-5 transition-colors hover:border-[var(--border-strong)] cursor-pointer w-full sm:w-auto text-center"
+                <Link
+                  to="/surveys"
+                  onClick={(e) => {
+                    if (!isAuthenticated()) {
+                      e.preventDefault();
+                      openLogin("/surveys", "Sign in with operator credentials to open the Sonar Analysis Console");
+                    }
+                  }}
+                  className="inline-flex h-10 items-center justify-center gap-2 px-5 transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-sunken)] cursor-pointer w-full sm:w-auto text-center"
                   style={{
                     borderRadius: "var(--radius)",
                     border: "1px solid var(--border-default)",
@@ -294,9 +300,9 @@ function Home() {
                     fontWeight: 500,
                   }}
                 >
-                  <SlidersHorizontal size={14} />
-                  View model performance
-                </a>
+                  <Radio size={15} />
+                  Launch Sonar Analysis
+                </Link>
               </div>
 
               {/* Status badge */}
