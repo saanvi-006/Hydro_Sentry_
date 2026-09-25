@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCachedUser, isAuthenticated, logout } from "@/services/auth/authService";
 import type { AuthUser } from "@/services/auth/authService";
+import { useAuthModal } from "@/context/AuthModalContext";
 
 /** Concentric-arcs sonar icon */
 function SonarIcon() {
@@ -36,6 +37,7 @@ const navLinks = [
 
 export function SiteHeader() {
   const navigate = useNavigate();
+  const { openLogin } = useAuthModal();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
@@ -63,7 +65,14 @@ export function SiteHeader() {
     logout();
     setLoggedIn(false);
     setUser(null);
-    void navigate({ to: "/login" });
+    void navigate({ to: "/" });
+  };
+
+  const handleNavClick = (e: React.MouseEvent, to: string, label: string) => {
+    if (to !== "/" && !loggedIn) {
+      e.preventDefault();
+      openLogin(to, `Please sign in to access the ${label}`);
+    }
   };
 
   const toggleTheme = () => {
@@ -124,6 +133,7 @@ export function SiteHeader() {
               <Link
                 key={to}
                 to={to}
+                onClick={(e) => handleNavClick(e, to, label)}
                 activeOptions={{ exact }}
                 className="nav-link cursor-pointer"
                 activeProps={{ className: "nav-link nav-link-active cursor-pointer" }}
@@ -246,8 +256,9 @@ export function SiteHeader() {
 
           {/* Login link — shown when NOT logged in */}
           {!loggedIn && (
-            <Link
-              to="/login"
+            <button
+              type="button"
+              onClick={() => openLogin(undefined, "Sign in with your HydroSentry operator account")}
               className="hidden md:inline-flex items-center"
               style={{
                 marginLeft: 2,
@@ -259,12 +270,12 @@ export function SiteHeader() {
                 fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: "0.01em",
-                textDecoration: "none",
+                border: "none",
                 cursor: "pointer",
               }}
             >
               Sign in
-            </Link>
+            </button>
           )}
 
           {/* Theme toggle */}
@@ -320,7 +331,13 @@ export function SiteHeader() {
                     key={to}
                     to={to}
                     activeOptions={{ exact }}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={(e) => {
+                      setMobileOpen(false);
+                      if (to !== "/" && !loggedIn) {
+                        e.preventDefault();
+                        openLogin(to, `Please sign in to access the ${label}`);
+                      }
+                    }}
                     className="nav-link cursor-pointer py-2"
                     activeProps={{ className: "nav-link nav-link-active cursor-pointer py-2" }}
                   >
@@ -340,13 +357,16 @@ export function SiteHeader() {
                       Sign out{user ? ` (${user.username})` : ""}
                     </button>
                   ) : (
-                    <Link
-                      to="/login"
-                      onClick={() => setMobileOpen(false)}
-                      className="nav-link cursor-pointer py-2"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        openLogin(undefined, "Sign in with your HydroSentry operator account");
+                      }}
+                      className="nav-link cursor-pointer py-2 w-full text-left"
                     >
                       Sign in
-                    </Link>
+                    </button>
                   )}
                 </div>
               </nav>

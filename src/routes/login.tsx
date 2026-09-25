@@ -1,7 +1,7 @@
-﻿import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, Radio } from "lucide-react";
-import { login, isAuthenticated } from "@/services/auth/authService";
+import { Eye, EyeOff, Radio, Sparkles } from "lucide-react";
+import { login, isAuthenticated, loginDemoOperator } from "@/services/auth/authService";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -277,6 +277,53 @@ function LoginPage() {
               }}
             >
               {loading ? "Signing in…" : "Sign in"}
+            </button>
+
+            {/* 1-Click Quick Demo Access */}
+            <button
+              type="button"
+              onClick={() => {
+                loginDemoOperator();
+                void navigate({ to: "/surveys" });
+              }}
+              style={{
+                marginTop: "0.75rem",
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0.5rem 0.75rem",
+                borderRadius: "var(--radius-md)",
+                background: "color-mix(in srgb, var(--brand-gold, #C9A15A) 12%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--brand-gold, #C9A15A) 32%, transparent)",
+                color: "var(--text-primary)",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+              title="1-Click login with pre-configured Operator demo account (works offline)"
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Sparkles size={14} style={{ color: "var(--brand-gold, #C9A15A)", flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: 11.5, fontWeight: 600 }}>Quick Demo Access</div>
+                  <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-tertiary)" }}>
+                    Operator · Operator@2026
+                  </div>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                  fontWeight: 700,
+                  background: "var(--brand-gold, #C9A15A)",
+                  color: "#FFFFFF",
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                }}
+              >
+                1-Click Entry →
+              </span>
             </button>
           </form>
 

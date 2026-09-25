@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { ScanLine, Target, ShieldAlert, Navigation, Radio, SlidersHorizontal } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
+import { useAuthModal } from "@/context/AuthModalContext";
+import { isAuthenticated } from "@/services/auth/authService";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -209,6 +211,7 @@ const pillars = [
 ];
 
 function Home() {
+  const { openLogin } = useAuthModal();
   const [capabilitiesInView, setCapabilitiesInView] = useState(false);
   const capabilitiesRef = useRef<HTMLElement>(null);
 
@@ -261,6 +264,12 @@ function Home() {
               <div className="mt-8 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 fade-up stagger-3">
                 <Link
                   to="/surveys"
+                  onClick={(e) => {
+                    if (!isAuthenticated()) {
+                      e.preventDefault();
+                      openLogin("/surveys", "Sign in with operator credentials to open the survey analysis console");
+                    }
+                  }}
                   className="inline-flex h-10 items-center justify-center gap-2 px-5 transition-opacity hover:opacity-90 cursor-pointer shadow-xs w-full sm:w-auto text-center"
                   style={{
                     borderRadius: "var(--radius)",

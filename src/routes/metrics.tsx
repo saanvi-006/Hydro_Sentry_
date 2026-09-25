@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SonarCanvas } from "@/components/dashboard/SonarCanvas";
@@ -10,6 +10,8 @@ import { FileText, Loader2, MapPin } from "lucide-react";
 import { exportPdf } from "@/services/report/pdfExport";
 import { DetectionPerformance } from "@/components/dashboard/DetectionPerformance";
 import { TrackMap } from "@/components/dashboard/TrackMap";
+import { isAuthenticated } from "@/services/auth/authService";
+import { triggerAuthModal } from "@/context/AuthModalContext";
 
 // Search params schema (TanStack Router v1)
 export const Route = createFileRoute("/metrics")({
@@ -44,9 +46,24 @@ function formatTs(ts: number) {
 function Reports() {
   const navigate = useNavigate();
   const { id } = Route.useSearch();
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      void navigate({ to: "/" });
+      triggerAuthModal({
+        targetPath: id ? `/metrics?id=${id}` : "/metrics",
+        reason: "Authentication required to access Intelligence Reports. Please sign in to continue.",
+      });
+    }
+  }, [navigate, id]);
+
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [enhanced, setEnhanced] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  if (!isAuthenticated()) {
+    return null;
+  }
 
   async function handleExportPdf(s: SurveyRecord) {
     setGeneratingPdf(true);

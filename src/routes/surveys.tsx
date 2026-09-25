@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { surveyProvider, reverseGeocode, getLocationSector } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
 import { isLiveMode, setLiveMode, liveProvider, getAnnotatedImageUrl } from "@/services/detection";
+import { isAuthenticated } from "@/services/auth/authService";
+import { triggerAuthModal } from "@/context/AuthModalContext";
 
 export const Route = createFileRoute("/surveys")({
   head: () => ({
@@ -1162,6 +1164,7 @@ function ResultsWorkspace({
 
 // ── Root Dashboard component ───────────────────────────────────────
 function Dashboard() {
+  const navigate = useNavigate();
   const [state, setState] = useState<WorkspaceState>("gateway");
   const [activeSurvey, setActiveSurvey] = useState<SurveyRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -1169,6 +1172,20 @@ function Dashboard() {
   // Check URL param ?id= for direct deep-link into a survey result
   const search = Route.useSearch() as Record<string, string | undefined>;
   const deepLinkId = search.id as string | undefined;
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      void navigate({ to: "/" });
+      triggerAuthModal({
+        targetPath: deepLinkId ? `/surveys?id=${deepLinkId}` : "/surveys",
+        reason: "Authentication required to access Survey Analysis Workspace. Please sign in to continue.",
+      });
+    }
+  }, [navigate, deepLinkId]);
+
+  if (!isAuthenticated()) {
+    return null;
+  }
 
   useEffect(() => {
     if (deepLinkId) {

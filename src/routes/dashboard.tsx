@@ -1,11 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TrackMap } from "@/components/dashboard/TrackMap";
 import { PriorityBadge } from "@/components/dashboard/PriorityBadge";
 import { surveyProvider } from "@/services/survey";
 import type { SurveyRecord } from "@/services/survey";
+import { isAuthenticated } from "@/services/auth/authService";
+import { triggerAuthModal } from "@/context/AuthModalContext";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -32,11 +34,33 @@ function formatTs(ts: number) {
 }
 
 function Overview() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      void navigate({ to: "/" });
+      triggerAuthModal({
+        targetPath: "/dashboard",
+        reason: "Authentication required to access the Mission Dashboard. Please sign in to continue.",
+      });
+    }
+  }, [navigate]);
+
   const surveys: SurveyRecord[] = surveyProvider.getAll();
 
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [showAllSurveys, setShowAllSurveys] = useState(false);
+  const [showAllPriorityFindings, setShowAllPriorityFindings] = useState(false);
   const [selectedSurveyFilter, setSelectedSurveyFilter] = useState<string>("all");
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+
+  if (!isAuthenticated()) {
+    return null;
+  }
+
+  const INITIAL_LIMIT = 5;
+  const displayedSurveys = showAllSurveys ? surveys : surveys.slice(0, INITIAL_LIMIT);
+  const hasMoreSurveys = surveys.length > INITIAL_LIMIT;
 
   // Aggregate headline metrics
   const totalSurveys     = surveys.length;
@@ -46,6 +70,10 @@ function Overview() {
     s.result.detections.map((d) => ({ ...d, surveyName: s.name, surveyId: s.id }))
   );
   const priorityFindings = allDetections.filter((d) => d.priority === "high_priority");
+  const displayedPriorityFindings = showAllPriorityFindings
+    ? priorityFindings
+    : priorityFindings.slice(0, INITIAL_LIMIT);
+  const hasMorePriorityFindings = priorityFindings.length > INITIAL_LIMIT;
 
   // Class breakdown across all surveys
   const totalKnown        = surveys.reduce((s, r) => s + r.result.summary.known_count, 0);
@@ -190,15 +218,27 @@ function Overview() {
 
             {/* ── Two-pane area ───────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
-              {/* Left pane — Recent Surveys table (increased row length / 2-tier metadata) */}
+              {/* Left pane — Recent Surveys table */}
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center justify-between mb-1.5">
-                  <h2
-                    className="text-[11px] font-semibold uppercase tracking-wider font-mono"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Recent Surveys ({surveys.length})
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2
+                      className="text-[11px] font-semibold uppercase tracking-wider font-mono"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Recent Surveys
+                    </h2>
+                    <span
+                      className="font-mono text-[10px] px-1.5 py-0.5 rounded"
+                      style={{
+                        background: "var(--bg-surface-sunken)",
+                        border: "1px solid var(--border-default)",
+                        color: "var(--text-tertiary)",
+                      }}
+                    >
+                      {hasMoreSurveys && !showAllSurveys ? `Showing 5 of ${surveys.length}` : `${surveys.length} total`}
+                    </span>
+                  </div>
                   <span
                     className="font-mono text-[10px]"
                     style={{ color: "var(--text-tertiary)" }}
@@ -208,107 +248,134 @@ function Overview() {
                 </div>
 
                 <div
-                  className="table-scroll-container overflow-x-auto"
+                  className="flex flex-col"
                   style={{
                     background: "var(--bg-surface)",
                     border: "1px solid var(--border-default)",
                     borderRadius: "var(--radius)",
                     boxShadow: "var(--shadow-card)",
+                    overflow: "hidden",
                   }}
                 >
-                  <table className="w-full text-left border-collapse min-w-[480px] sm:min-w-0">
-                    <thead>
-                      <tr
-                        style={{
-                          borderBottom: "1px solid var(--border-default)",
-                          background: "var(--bg-surface-sunken)",
-                        }}
-                      >
-                        <th
-                          className="px-3.5 py-2 text-left font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)]"
+                  <div className="table-scroll-container overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[480px] sm:min-w-0">
+                      <thead>
+                        <tr
+                          style={{
+                            borderBottom: "1px solid var(--border-default)",
+                            background: "var(--bg-surface-sunken)",
+                          }}
                         >
-                          Survey Details
-                        </th>
-                        <th
-                          className="px-3 py-2 text-center font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
-                        >
-                          Top Priority
-                        </th>
-                        <th
-                          className="px-3.5 py-2 text-right font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
-                        >
-                          Report
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {surveys.map((s, i) => {
-                        const topPriority = s.result.detections.reduce<string | null>((best, d) => {
-                          const order = ["high_priority", "review_required", "normal", "low_priority"];
-                          if (!best) return d.priority;
-                          return order.indexOf(d.priority) < order.indexOf(best) ? d.priority : best;
-                        }, null);
-                        return (
-                          <tr
-                            key={s.id}
-                            className="transition-colors hover:bg-[var(--bg-surface-sunken)]/60"
-                            style={{
-                              borderBottom: i < surveys.length - 1 ? "1px solid var(--border-default)" : "none",
-                            }}
+                          <th
+                            className="px-3.5 py-2 text-left font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)]"
                           >
-                            <td className="px-3.5 py-2.5">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className="text-[13px] font-semibold"
-                                  style={{ color: "var(--text-primary)" }}
-                                  title={s.name}
+                            Survey Details
+                          </th>
+                          <th
+                            className="px-3 py-2 text-center font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                          >
+                            Top Priority
+                          </th>
+                          <th
+                            className="px-3.5 py-2 text-right font-mono text-[10px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)] whitespace-nowrap"
+                          >
+                            Report
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {displayedSurveys.map((s, i) => {
+                          const topPriority = s.result.detections.reduce<string | null>((best, d) => {
+                            const order = ["high_priority", "review_required", "normal", "low_priority"];
+                            if (!best) return d.priority;
+                            return order.indexOf(d.priority) < order.indexOf(best) ? d.priority : best;
+                          }, null);
+                          return (
+                            <tr
+                              key={s.id}
+                              className="transition-colors hover:bg-[var(--bg-surface-sunken)]/60"
+                              style={{
+                                borderBottom: i < displayedSurveys.length - 1 ? "1px solid var(--border-default)" : "none",
+                              }}
+                            >
+                              <td className="px-3.5 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="text-[13px] font-semibold"
+                                    style={{ color: "var(--text-primary)" }}
+                                    title={s.name}
+                                  >
+                                    {s.name}
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5 text-[11px] font-mono text-[var(--text-secondary)]">
+                                  <span>{s.locationName || s.region || "Not specified"}</span>
+                                  <span className="text-[var(--text-tertiary)]">·</span>
+                                  <span>{formatTs(s.timestamp)}</span>
+                                  <span className="text-[var(--text-tertiary)]">·</span>
+                                  <span className="text-[var(--text-primary)] font-semibold">
+                                    {s.result.summary.total_detections} contacts
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                                {topPriority ? (
+                                  <PriorityBadge priority={topPriority} />
+                                ) : (
+                                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}>
+                                    —
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-3.5 py-2.5 text-right whitespace-nowrap">
+                                <Link
+                                  to="/metrics"
+                                  search={{ id: s.id }}
+                                  className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-[11px] font-semibold px-2.5 py-1 rounded transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--accent-primary-fg)] cursor-pointer"
+                                  style={{
+                                    color: "var(--accent-primary)",
+                                    background: "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
+                                    border: "1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)",
+                                  }}
                                 >
-                                  {s.name}
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5 text-[11px] font-mono text-[var(--text-secondary)]">
-                                <span>{s.locationName || s.region || "Not specified"}</span>
-                                <span className="text-[var(--text-tertiary)]">·</span>
-                                <span>{formatTs(s.timestamp)}</span>
-                                <span className="text-[var(--text-tertiary)]">·</span>
-                                <span className="text-[var(--text-primary)] font-semibold">
-                                  {s.result.summary.total_detections} contacts
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2.5 text-center whitespace-nowrap">
-                              {topPriority ? (
-                                <PriorityBadge priority={topPriority} />
-                              ) : (
-                                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-tertiary)" }}>
-                                  —
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-3.5 py-2.5 text-right whitespace-nowrap">
-                              <Link
-                                to="/metrics"
-                                search={{ id: s.id }}
-                                className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-[11px] font-semibold px-2.5 py-1 rounded transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--accent-primary-fg)] cursor-pointer"
-                                style={{
-                                  color: "var(--accent-primary)",
-                                  background: "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
-                                  border: "1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)",
-                                }}
-                              >
-                                <span>Report</span>
-                                <span className="text-[12px] leading-none" aria-hidden="true">→</span>
-                              </Link>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                                  <span>Report</span>
+                                  <span className="text-[12px] leading-none" aria-hidden="true">→</span>
+                                </Link>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {hasMoreSurveys && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllSurveys((prev) => !prev)}
+                      className="w-full py-2.5 px-4 flex items-center justify-center gap-2 font-mono text-[11px] font-semibold transition-colors hover:bg-[var(--bg-surface-sunken)] cursor-pointer select-none"
+                      style={{
+                        borderTop: "1px solid var(--border-default)",
+                        background: "var(--bg-surface-sunken)",
+                        color: "var(--accent-primary)",
+                      }}
+                    >
+                      <span>
+                        {showAllSurveys
+                          ? "Collapse to first 5 surveys"
+                          : `View all surveys (${surveys.length - INITIAL_LIMIT} more)`}
+                      </span>
+                      {showAllSurveys ? (
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* Right pane — Class breakdown + Priority findings (fully visible content) */}
+              {/* Right pane — Class breakdown + Priority findings */}
               <div className="flex flex-col gap-3 min-w-0">
                 {/* Detection class breakdown */}
                 <div>
@@ -353,17 +420,27 @@ function Overview() {
                   </div>
                 </div>
 
-                {/* Priority findings — full text visibility */}
+                {/* Priority findings — collapsible list */}
                 {priorityFindings.length > 0 && (
                   <div>
-                    <h2
-                      className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider font-mono"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      Priority Findings ({priorityFindings.length})
-                    </h2>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <h2
+                        className="text-[11px] font-semibold uppercase tracking-wider font-mono"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Priority Findings ({priorityFindings.length})
+                      </h2>
+                      {hasMorePriorityFindings && !showAllPriorityFindings && (
+                        <span
+                          className="font-mono text-[10px]"
+                          style={{ color: "var(--text-tertiary)" }}
+                        >
+                          Showing first 5
+                        </span>
+                      )}
+                    </div>
                     <div className="space-y-2">
-                      {priorityFindings.map((d) => (
+                      {displayedPriorityFindings.map((d) => (
                         <div
                           key={`${d.surveyId}-${d.id}`}
                           className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 px-3 py-2 transition-all hover:shadow-xs min-w-0"
@@ -400,6 +477,31 @@ function Overview() {
                           </span>
                         </div>
                       ))}
+
+                      {hasMorePriorityFindings && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllPriorityFindings((prev) => !prev)}
+                          className="w-full py-2 px-3 flex items-center justify-center gap-1.5 font-mono text-[11px] font-semibold transition-colors hover:bg-[var(--bg-surface-sunken)] cursor-pointer select-none rounded mt-1.5"
+                          style={{
+                            border: "1px solid var(--border-default)",
+                            background: "var(--bg-surface)",
+                            color: "var(--accent-primary)",
+                            boxShadow: "var(--shadow-card)",
+                          }}
+                        >
+                          <span>
+                            {showAllPriorityFindings
+                              ? "Collapse to first 5 findings"
+                              : `View all findings (${priorityFindings.length - INITIAL_LIMIT} more)`}
+                          </span>
+                          {showAllPriorityFindings ? (
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

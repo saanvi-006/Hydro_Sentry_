@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AuthModalProvider } from "@/context/AuthModalContext";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 function NotFoundComponent() {
   return (
@@ -128,10 +130,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Key-based page-enter animation gives silky smooth route transitions */}
-      <div key={pathname} className="page-enter min-h-screen">
-        <Outlet />
-      </div>
+      <AuthModalProvider>
+        {/* Key-based page-enter animation gives silky smooth route transitions */}
+        <div key={pathname} className="page-enter min-h-screen">
+          <Outlet />
+        </div>
+        <AuthModal />
+      </AuthModalProvider>
     </QueryClientProvider>
   );
 }
