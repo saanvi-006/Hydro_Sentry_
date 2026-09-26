@@ -4,6 +4,7 @@ import { UploadCloud, ArrowLeft, Play, AlertTriangle, Loader2, MapPin, Navigatio
 import { SiteHeader } from "@/components/SiteHeader";
 import { SonarCanvas } from "@/components/dashboard/SonarCanvas";
 import { DetectionCard } from "@/components/dashboard/DetectionCard";
+import { TrackMap } from "@/components/dashboard/TrackMap";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -1155,6 +1156,26 @@ function ResultsWorkspace({
                 </div>
               ))
             )}
+          </div>
+
+          {/* Tactical track map */}
+          <div className="mt-5 pt-4" style={{ borderTop: "1px solid var(--border-default)" }}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="eyebrow">Tactical Survey Track</p>
+              <span className="font-mono text-[9px] text-[var(--text-tertiary)]">
+                {survey.locationName || survey.region || "WGS-84"}
+              </span>
+            </div>
+            <TrackMap
+              detections={result.detections}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              height={260}
+              showContactList={false}
+              region={survey.locationName || survey.region}
+              surveyLocation={survey.location}
+              surveyName={survey.name}
+            />
           </div>
         </Panel>
       </main>
