@@ -305,6 +305,7 @@ export function SiteHeader() {
               <button
                 type="button"
                 aria-label="Open navigation menu"
+                onPointerDown={(e) => { (e.currentTarget as HTMLElement).blur(); }}
                 className="md:hidden flex items-center justify-center h-7 w-7 rounded cursor-pointer transition-colors"
                 style={{
                   background: "var(--bg-surface-sunken)",
