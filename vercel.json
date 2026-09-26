@@ -1,9 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://hydrosentry-835512366533.asia-south1.run.app/api/:path*"
-    }
-  ]
-}

@@ -9,8 +9,10 @@
  *   GET  /api/auth/me         Authorization: Bearer <token>
  */
 
-const envBaseUrl = import.meta.env["VITE_API_BASE_URL"] as string | undefined;
-const BASE_URL = (envBaseUrl !== undefined ? envBaseUrl : "").replace(/\/+$/, "");
+const BASE_URL = (
+  (import.meta.env["VITE_API_BASE_URL"] as string | undefined) ||
+  "https://hydrosentry-835512366533.asia-south1.run.app"
+).replace(/\/+$/, "");
 
 const TOKEN_KEY = "hydrosentry-token";
 const USER_KEY  = "hydrosentry-user";
